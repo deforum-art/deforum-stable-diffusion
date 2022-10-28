@@ -25,7 +25,7 @@ conda install -c anaconda git -y
 2. clone the github repository:
 ```
 git clone https://github.com/deforum-art/deforum-stable-diffusion.git
-cd stable-diffusion
+cd deforum-stable-diffusion
 
 ```
 3. create anaconda environment:
