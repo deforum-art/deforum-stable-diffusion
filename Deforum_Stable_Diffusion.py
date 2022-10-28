@@ -89,7 +89,7 @@ def setup_environment():
         all_process = [
             ['pip', 'install', 'torch==1.12.1+cu113', 'torchvision==0.13.1+cu113', '--extra-index-url', 'https://download.pytorch.org/whl/cu113'],
             ['pip', 'install', 'omegaconf==2.2.3', 'einops==0.4.1', 'pytorch-lightning==1.7.4', 'torchmetrics==0.9.3', 'torchtext==0.13.1', 'transformers==4.21.2', 'kornia==0.6.7'],
-            ['git', 'clone',  '-b', 'local-conditioning', 'https://github.com/deforum/stable-diffusion'],
+            ['git', 'clone', 'https://github.com/deforum-art/deforum-stable-diffusion'],
             ['pip', 'install', 'accelerate', 'ftfy', 'jsonmerge', 'matplotlib', 'resize-right', 'timm', 'torchdiffeq','scikit-learn'],
         ]
         for process in all_process:
@@ -97,12 +97,12 @@ def setup_environment():
             if print_subprocess:
                 print(running)
 
-        with open('stable-diffusion/src/k_diffusion/__init__.py', 'w') as f:
+        with open('deforum-stable-diffusion/src/k_diffusion/__init__.py', 'w') as f:
             f.write('')
 
         sys.path.extend([
-            'stable-diffusion/',
-            'stable-diffusion/src',
+            'deforum-stable-diffusion/',
+            'deforum-stable-diffusion/src',
         ])
 
         end_time = time.time()
