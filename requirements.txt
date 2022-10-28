@@ -21,3 +21,7 @@ scikit-learn
 timm
 torchdiffeq
 transformers==4.19.2
+albumentations
+more_itertools
+devtools
+validators
