@@ -32,7 +32,7 @@ cd deforum-stable-diffusion
 ```
 conda create -n dsd python=3.10 -y
 conda activate dsd
-conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia
+conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia -y
 
 ```
 4. install required packages:
