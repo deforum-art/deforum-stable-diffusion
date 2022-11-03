@@ -57,6 +57,7 @@ conda activate dsd
 git submodule update --init --recursive
 pip install -r requirements.txt
 pip install -e .
+
 ```
 xformers can be enabled by switching the attention.py
 ```
