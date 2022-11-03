@@ -14,7 +14,7 @@ numexpr
 omegaconf
 opencv-python
 pandas
-pytorch_lightning
+pytorch_lightning==1.7.7
 resize-right
 scikit-image
 scikit-learn
