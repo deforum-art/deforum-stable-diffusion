@@ -112,6 +112,7 @@ def load_model(root):
 
     # config path
     ckpt_config_path = root.custom_config_path if root.model_config == "custom" else os.path.join(root.models_path, root.model_config)
+
     if os.path.exists(ckpt_config_path):
         print(f"{ckpt_config_path} exists")
     else:
@@ -122,6 +123,7 @@ def load_model(root):
     # checkpoint path or download
     ckpt_path = root.custom_checkpoint_path if root.model_checkpoint == "custom" else os.path.join(root.models_path, root.model_checkpoint)
     ckpt_valid = True
+
     if os.path.exists(ckpt_path):
         pass
     elif 'url' in model_map[root.model_checkpoint]:
@@ -163,17 +165,20 @@ def load_model(root):
     print(f"ckpt_path: {ckpt_path}")
 
     if check_sha256 and root.model_checkpoint != "custom" and ckpt_valid:
-        import hashlib
-        print("..checking sha256")
-        with open(ckpt_path, "rb") as f:
-            bytes = f.read() 
-            hash = hashlib.sha256(bytes).hexdigest()
-            del bytes
-        if model_map[root.model_checkpoint]["sha256"] == hash:
-            print("..hash is correct")
-        else:
-            print("..hash in not correct")
-            ckpt_valid = False
+        try:
+            import hashlib
+            print("..checking sha256")
+            with open(ckpt_path, "rb") as f:
+                bytes = f.read() 
+                hash = hashlib.sha256(bytes).hexdigest()
+                del bytes
+            if model_map[root.model_checkpoint]["sha256"] == hash:
+                print("..hash is correct")
+            else:
+                print("..hash in not correct")
+                ckpt_valid = False
+        except:
+            print("..could not verify model integrity")
 
     def load_model_from_config(config, ckpt, verbose=False, device='cuda', half_precision=True,print_flag=False):
         map_location = "cuda" # ["cpu", "cuda"]

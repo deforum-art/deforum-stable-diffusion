@@ -340,7 +340,7 @@ args.strength = max(0.0, min(1.0, args.strength))
 
 # Load clip model if using clip guidance
 if (args.clip_scale > 0) or (args.aesthetics_scale > 0):
-    root.clip_model = clip.load(args.clip_name, jit=False)[0].eval().requires_grad_(False).to(device)
+    root.clip_model = clip.load(args.clip_name, jit=False)[0].eval().requires_grad_(False).to(root.device)
     if (args.aesthetics_scale > 0):
         root.aesthetics_model = load_aesthetics_model(args, root)
 
