@@ -1,5 +1,7 @@
 # %%
-# !! {"metadata":# !! {}
+# !! {"metadata":{
+# !!   "id": "ByGXyiHZWM_q"
+# !! }}
 """
 # **Deforum Stable Diffusion v0.6**
 [Stable Diffusion](https://github.com/CompVis/stable-diffusion) by Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, Björn Ommer and the [Stability.ai](https://stability.ai/) Team. [K Diffusion](https://github.com/crowsonkb/k-diffusion) by [Katherine Crowson](https://twitter.com/RiversHaveWings).
@@ -8,20 +10,28 @@ Notebook by [deforum](https://discord.gg/upmXXsrwZc)
 """
 
 # %%
-# !! {"metadata":# !! {}
+# !! {"metadata":{
+# !!   "cellView": "form",
+# !!   "id": "IJjzzkKlWM_s"
+# !! }}
 #@markdown **NVIDIA GPU**
 import subprocess, os, sys
 sub_p_res = subprocess.run(['nvidia-smi', '--query-gpu=name,memory.total,memory.free', '--format=csv,noheader'], stdout=subprocess.PIPE).stdout.decode('utf-8')
 print(f"{sub_p_res[:-1]}")
 
 # %%
-# !! {"metadata":# !! {}
+# !! {"metadata":{
+# !!   "id": "UA8-efH-WM_t"
+# !! }}
 """
 # Setup
 """
 
 # %%
-# !! {"metadata":# !! {}
+# !! {"metadata":{
+# !!   "cellView": "form",
+# !!   "id": "0D2HQO-PWM_t"
+# !! }}
 def setup_environment():
     print_subprocess = False
     try:
@@ -71,7 +81,7 @@ from helpers.render import render_animation, render_input_video, render_image_ba
 from helpers.model_load import make_linear_decode, load_model, get_model_output_paths
 from helpers.aesthetics import load_aesthetics_model
 
-#@markdown **Path and Model Setup**
+#@markdown **Path Setup**
 
 def Root():
     return locals()
@@ -84,6 +94,7 @@ root.mount_google_drive = True #@param {type:"boolean"}
 root.models_path_gdrive = "/content/drive/MyDrive/AI/models" #@param {type:"string"}
 root.output_path_gdrive = "/content/drive/MyDrive/AI/StableDiffusion" #@param {type:"string"}
 
+#@markdown **Model Setup**
 root.model_config = "v1-inference.yaml" #@param ["custom","v1-inference.yaml"]
 root.model_checkpoint =  "v1-5-pruned-emaonly.ckpt" #@param ["custom","v1-5-pruned.ckpt","v1-5-pruned-emaonly.ckpt","sd-v1-4-full-ema.ckpt","sd-v1-4.ckpt","sd-v1-3-full-ema.ckpt","sd-v1-3.ckpt","sd-v1-2-full-ema.ckpt","sd-v1-2.ckpt","sd-v1-1-full-ema.ckpt","sd-v1-1.ckpt", "robo-diffusion-v1.ckpt","wd-v1-3-float16.ckpt"]
 root.custom_config_path = "" #@param {type:"string"}
@@ -94,13 +105,18 @@ root.models_path, root.output_path = get_model_output_paths(root)
 root.model, root.device = load_model(root)
 
 # %%
-# !! {"metadata":# !! {}
+# !! {"metadata":{
+# !!   "id": "6JxwhBwtWM_t"
+# !! }}
 """
 # Settings
 """
 
 # %%
-# !! {"metadata":# !! {}
+# !! {"metadata":{
+# !!   "cellView": "form",
+# !!   "id": "E0tJVYA4WM_u"
+# !! }}
 def DeforumAnimArgs():
 
     #@markdown ####**Animation:**
@@ -158,7 +174,9 @@ def DeforumAnimArgs():
     return locals()
 
 # %%
-# !! {"metadata":# !! {}
+# !! {"metadata":{
+# !!   "id": "i9fly1RIWM_u"
+# !! }}
 prompts = [
     "a beautiful forest by Asher Brown Durand, trending on Artstation", # the first prompt I want
     "a beautiful portrait of a woman by Artgerm, trending on Artstation", # the second prompt I want
@@ -176,7 +194,10 @@ animation_prompts = {
 }
 
 # %%
-# !! {"metadata":# !! {}
+# !! {"metadata":{
+# !!   "cellView": "form",
+# !!   "id": "XVzhbmizWM_u"
+# !! }}
 override_settings_with_file = False #@param {type:"boolean"}
 custom_settings_file = "/content/drive/MyDrive/Settings.txt"#@param {type:"string"}
 
@@ -333,13 +354,18 @@ else:
     render_image_batch(args, prompts, root)
 
 # %%
-# !! {"metadata":# !! {}
+# !! {"metadata":{
+# !!   "id": "gJ88kZ2-WM_v"
+# !! }}
 """
 # Create Video From Frames
 """
 
 # %%
-# !! {"metadata":# !! {}
+# !! {"metadata":{
+# !!   "cellView": "form",
+# !!   "id": "XQGeqaGAWM_v"
+# !! }}
 skip_video_for_run_all = True #@param {type: 'boolean'}
 fps = 12 #@param {type:"number"}
 #@markdown **Manual Settings**
@@ -404,7 +430,10 @@ else:
     display.display(display.HTML(f'<video controls loop><source src="{data_url}" type="video/mp4"></video>') )
 
 # %%
-# !! {"metadata":# !! {}
+# !! {"metadata":{
+# !!   "cellView": "form",
+# !!   "id": "MMpAcyrYWM_v"
+# !! }}
 skip_disconnect_for_run_all = True #@param {type: 'boolean'}
 
 if skip_disconnect_for_run_all == True:
@@ -437,5 +466,9 @@ else:
 # !!     "interpreter": {
 # !!       "hash": "b7e04c8a9537645cbc77fa0cbde8069bc94e341b0d5ced104651213865b24e58"
 # !!     }
+# !!   },
+# !!   "colab": {
+# !!     "provenance": [],
+# !!     "collapsed_sections": []
 # !!   }
 # !! }}
