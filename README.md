@@ -25,14 +25,14 @@ conda install -c anaconda git -y
 2. clone the github repository:
 ```
 git clone https://github.com/deforum-art/deforum-stable-diffusion.git
-cd stable-diffusion
+cd deforum-stable-diffusion
 
 ```
 3. create anaconda environment:
 ```
 conda create -n dsd python=3.10 -y
 conda activate dsd
-conda install pytorch cudatoolkit=11.6 torchvision torchaudio -c pytorch -c conda-forge -y
+conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia -y
 
 ```
 4. install required packages:
@@ -45,7 +45,31 @@ python -m pip install -r requirements.txt
 python Deforum_Stable_Diffusion.py
 
 ```
-you have successfully installed deforum stable diffusion if the python file runs without any errors. if you get "out of memory" errors you can try installing xformers for your system (see either Windows Users or Linux Users below)
+you have successfully installed deforum stable diffusion if the python file runs without any errors.
+
+
+## Installing Xformers
+xformers can be installed from source with the following commands
+```
+git clone https://github.com/facebookresearch/xformers.git
+cd xformers
+conda activate dsd
+git submodule update --init --recursive
+pip install -r requirements.txt
+pip install -e .
+```
+xformers can be enabled by switching the attention.py
+```
+mv src/ldm/modules/attention.py src/ldm/modules/attention_backup.py
+mv src/ldm/modules/attention_xformers.py src/ldm/modules/attention.py
+
+```
+to turn off xformers run the following:
+```
+mv src/ldm/modules/attention.py src/ldm/modules/attention_xformers.py 
+mv src/ldm/modules/attention_backup.py src/ldm/modules/attention.py
+
+```
 
 
 ## Running Deforum Stable Diffusion
@@ -94,54 +118,6 @@ copy paste url token
 
 ### Colab Hosted Runtime
 Deforum_Stable_Diffusion.ipynb can be uploaded to colab and run normally in a hosted session.
-
-
-## Windows Users
-the midas and adabins model downloads are broken for windows at the moment. windows users will need to manually download model weights and place in the models folders. note: if you do not specify an existing models folder, the folder will be created automatically when you run either the .py or .ipynb for the first time.
-
-manual download links:
-
-https://github.com/intel-isl/DPT/releases/download/1_0/dpt_large-midas-2f21e586.pt
-
-https://cloudflare-ipfs.com/ipfs/Qmd2mMnDLWePKmgfS8m6ntAg4nhV5VkUyAydYBp8cWWeB7/AdaBins_nyu.pt
-
-xformers can be installed with the following commands:
-```
-wget https://github.com/neonsecret/xformers/releases/download/v0.14/xformers-0.0.14.dev0-cp39-cp39-win_amd64.whl
-pip install xformers-0.0.14.dev0-cp39-cp39-win_amd64.whl
-
-```
-xformers can be enabled by switching the attention.py
-```
-mv src/ldm/modules/attention.py src/ldm/modules/attention_backup.py
-mv src/ldm/modules/attention_xformers.py src/ldm/modules/attention.py
-
-```
-to turn off xformers run the following:
-```
-mv src/ldm/modules/attention.py src/ldm/modules/attention_xformers.py 
-mv src/ldm/modules/attention_backup.py src/ldm/modules/attention.py
-
-```
-
-## Linux Users
-xformers can be installed with the following commands:
-```
-conda install xformers -c xformers/label/dev -y
-
-```
-xformers can be enabled by switching the attention.py
-```
-mv src/ldm/modules/attention.py src/ldm/modules/attention_backup.py
-mv src/ldm/modules/attention_xformers.py src/ldm/modules/attention.py
-
-```
-to turn off xformers run the following:
-```
-mv src/ldm/modules/attention.py src/ldm/modules/attention_xformers.py 
-mv src/ldm/modules/attention_backup.py src/ldm/modules/attention.py
-
-```
 
 
 ## Starting Over
