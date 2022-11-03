@@ -254,6 +254,7 @@ def render_animation(args, anim_args, animation_prompts, root):
 
         # grab prompt for current frame
         args.prompt = prompt_series[frame_idx]
+        args.clip_prompt = args.prompt
         print(f"{args.prompt} {args.seed}")
         if not using_vid_init:
             print(f"Angle: {keys.angle_series[frame_idx]} Zoom: {keys.zoom_series[frame_idx]}")
@@ -342,6 +343,7 @@ def render_interpolation(args, anim_args, animation_prompts, root):
 
     for i, prompt in animation_prompts.items():
         args.prompt = prompt
+        args.clip_prompt = args.prompt
 
         # sample the diffusion model
         results = generate(args, root, return_c=True)
