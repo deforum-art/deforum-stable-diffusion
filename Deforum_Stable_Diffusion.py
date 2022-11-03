@@ -1,7 +1,5 @@
 # %%
-# !! {"metadata":{
-# !!   "id": "c442uQJ_gUgy"
-# !! }}
+# !! {"metadata":# !! {}
 """
 # **Deforum Stable Diffusion v0.6**
 [Stable Diffusion](https://github.com/CompVis/stable-diffusion) by Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, Björn Ommer and the [Stability.ai](https://stability.ai/) Team. [K Diffusion](https://github.com/crowsonkb/k-diffusion) by [Katherine Crowson](https://twitter.com/RiversHaveWings).
@@ -23,10 +21,7 @@ print(f"{sub_p_res[:-1]}")
 """
 
 # %%
-# !! {"metadata":{
-# !!   "cellView": "form",
-# !!   "id": "TxIOPT0G5Lx1"
-# !! }}
+# !! {"metadata":# !! {}
 def setup_environment():
     print_subprocess = False
     try:
@@ -99,26 +94,13 @@ root.models_path, root.output_path = get_model_output_paths(root)
 root.model, root.device = load_model(root)
 
 # %%
-# !! {"metadata":{
-# !!   "id": "ov3r4RD1tzsT"
-# !! }}
+# !! {"metadata":# !! {}
 """
 # Settings
 """
 
 # %%
-# !! {"metadata":{
-# !!   "id": "0j7rgxvLvfay"
-# !! }}
-"""
-### Animation Settings
-"""
-
-# %%
-# !! {"metadata":{
-# !!   "cellView": "form",
-# !!   "id": "8HJN2TE3vh-J"
-# !! }}
+# !! {"metadata":# !! {}
 def DeforumAnimArgs():
 
     #@markdown ####**Animation:**
@@ -176,18 +158,7 @@ def DeforumAnimArgs():
     return locals()
 
 # %%
-# !! {"metadata":{
-# !!   "id": "63UOJvU3xdPS"
-# !! }}
-"""
-### Prompts
-`animation_mode: None` batches on list of *prompts*. `animation_mode: 2D` uses *animation_prompts* key frame sequence
-"""
-
-# %%
-# !! {"metadata":{
-# !!   "id": "2ujwkGZTcGev"
-# !! }}
+# !! {"metadata":# !! {}
 prompts = [
     "a beautiful forest by Asher Brown Durand, trending on Artstation", # the first prompt I want
     "a beautiful portrait of a woman by Artgerm, trending on Artstation", # the second prompt I want
@@ -205,19 +176,7 @@ animation_prompts = {
 }
 
 # %%
-# !! {"metadata":{
-# !!   "id": "s8RAo2zI-vQm"
-# !! }}
-"""
-# Run
-"""
-
-# %%
-# !! {"metadata":{
-# !!   "cellView": "form",
-# !!   "id": "qH74gBWDd2oq"
-# !! }}
-#@markdown **Load Settings**
+# !! {"metadata":# !! {}
 override_settings_with_file = False #@param {type:"boolean"}
 custom_settings_file = "/content/drive/MyDrive/Settings.txt"#@param {type:"string"}
 
@@ -374,18 +333,13 @@ else:
     render_image_batch(args, prompts, root)
 
 # %%
-# !! {"metadata":{
-# !!   "id": "4zV0J_YbMCTx"
-# !! }}
+# !! {"metadata":# !! {}
 """
-# Create video from frames
+# Create Video From Frames
 """
 
 # %%
-# !! {"metadata":{
-# !!   "cellView": "form",
-# !!   "id": "no2jP8HTMBM0"
-# !! }}
+# !! {"metadata":# !! {}
 skip_video_for_run_all = True #@param {type: 'boolean'}
 fps = 12 #@param {type:"number"}
 #@markdown **Manual Settings**
@@ -450,18 +404,7 @@ else:
     display.display(display.HTML(f'<video controls loop><source src="{data_url}" type="video/mp4"></video>') )
 
 # %%
-# !! {"metadata":{
-# !!   "id": "XccAk0RoRme0"
-# !! }}
-"""
-# Disconnect when finished
-"""
-
-# %%
-# !! {"metadata":{
-# !!   "cellView": "form",
-# !!   "id": "_x6obwPURfSm"
-# !! }}
+# !! {"metadata":# !! {}
 skip_disconnect_for_run_all = True #@param {type: 'boolean'}
 
 if skip_disconnect_for_run_all == True:
@@ -472,15 +415,8 @@ else:
 
 # %%
 # !! {"main_metadata":{
-# !!   "accelerator": "GPU",
-# !!   "colab": {
-# !!     "collapsed_sections": [],
-# !!     "private_outputs": true,
-# !!     "provenance": []
-# !!   },
-# !!   "gpuClass": "standard",
 # !!   "kernelspec": {
-# !!     "display_name": "Python 3.9.13 ('dsd')",
+# !!     "display_name": "Python 3.10.6 ('dsd')",
 # !!     "language": "python",
 # !!     "name": "python3"
 # !!   },
@@ -496,6 +432,7 @@ else:
 # !!     "pygments_lexer": "ipython3",
 # !!     "version": "3.10.6"
 # !!   },
+# !!   "orig_nbformat": 4,
 # !!   "vscode": {
 # !!     "interpreter": {
 # !!       "hash": "b7e04c8a9537645cbc77fa0cbde8069bc94e341b0d5ced104651213865b24e58"
