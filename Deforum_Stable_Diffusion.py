@@ -470,5 +470,7 @@ else:
 # !!   "colab": {
 # !!     "provenance": [],
 # !!     "collapsed_sections": []
-# !!   }
+# !!   },
+# !!   "accelerator": "GPU",
+# !!   "gpuClass": "premium"
 # !! }}

@@ -57,6 +57,7 @@ conda activate dsd
 git submodule update --init --recursive
 pip install -r requirements.txt
 pip install -e .
+
 ```
 xformers can be enabled by switching the attention.py
 ```
@@ -70,6 +71,15 @@ mv src/ldm/modules/attention.py src/ldm/modules/attention_xformers.py
 mv src/ldm/modules/attention_backup.py src/ldm/modules/attention.py
 
 ```
+
+## Starting Over
+the stable-diffusion folder can be deleted and the dsd conda environment can be removed with the following set of commands:
+```
+conda deactivate
+conda env remove -n dsd
+
+```
+with the dsd environment removed you can start over.
 
 
 ## Running Deforum Stable Diffusion
@@ -117,14 +127,4 @@ copy paste url token
 
 
 ### Colab Hosted Runtime
-Deforum_Stable_Diffusion.ipynb can be uploaded to colab and run normally in a hosted session.
-
-
-## Starting Over
-the stable-diffusion folder can be deleted and the dsd conda environment can be removed with the following set of commands:
-```
-conda deactivate
-conda env remove -n dsd
-
-```
-with the dsd environment removed you can start over.
+Deforum_Stable_Diffusion.ipynb can be uploaded to colab and run normally in a hosted session
