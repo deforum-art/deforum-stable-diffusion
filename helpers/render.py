@@ -13,9 +13,10 @@ import torchvision.transforms as T
 
 from .generate import generate, add_noise
 from .prompt import sanitize
-from .animation import DeformAnimKeys, sample_from_cv2, sample_to_cv2, anim_frame_warp_2d, anim_frame_warp_3d, vid2frames
+from .animation import DeformAnimKeys, sample_from_cv2, sample_to_cv2, anim_frame_warp, vid2frames
 from .depth import DepthModel
 from .colors import maintain_colors
+from .load_images import prepare_overlay_mask
 
 def next_seed(args):
     if args.seed_behavior == 'iter':
@@ -199,16 +200,30 @@ def render_animation(args, anim_args, animation_prompts, root):
                     assert(turbo_next_image is not None)
                     depth = depth_model.predict(turbo_next_image, anim_args)
 
-                if anim_args.animation_mode == '2D':
-                    if advance_prev:
-                        turbo_prev_image = anim_frame_warp_2d(turbo_prev_image, args, anim_args, keys, tween_frame_idx)
-                    if advance_next:
-                        turbo_next_image = anim_frame_warp_2d(turbo_next_image, args, anim_args, keys, tween_frame_idx)
-                else: # '3D'
-                    if advance_prev:
-                        turbo_prev_image = anim_frame_warp_3d(root.device, turbo_prev_image, depth, anim_args, keys, tween_frame_idx)
-                    if advance_next:
-                        turbo_next_image = anim_frame_warp_3d(root.device, turbo_next_image, depth, anim_args, keys, tween_frame_idx)
+                if advance_prev:
+                    turbo_prev_image, _ = anim_frame_warp(turbo_prev_image, args, anim_args, keys, tween_frame_idx, depth_model, depth=depth, device=root.device)
+                if advance_next:
+                    turbo_next_image, _ = anim_frame_warp(turbo_next_image, args, anim_args, keys, tween_frame_idx, depth_model, depth=depth, device=root.device)
+                # Transformed raw image before color coherence and noise. Used for mask overlay
+                if args.use_mask and args.overlay_mask:
+                    # Apply transforms to the original image
+                    init_image_raw, _ = anim_frame_warp(args.init_sample_raw, args, anim_args, keys, frame_idx, depth_model, depth, device=root.device)
+                    if root.half_precision:
+                        args.init_sample_raw = sample_from_cv2(init_image_raw).half().to(root.device)
+                    else:
+                        args.init_sample_raw = sample_from_cv2(init_image_raw).to(root.device)
+
+                #Transform the mask image
+                if args.use_mask:
+                    if args.mask_sample is None:
+                        args.mask_sample = prepare_overlay_mask(args, root, prev_sample.shape)
+                    # Transform the mask
+                    mask_image, _ = anim_frame_warp(args.mask_sample, args, anim_args, keys, frame_idx, depth_model, depth, device=root.device)
+                    if root.half_precision:
+                        args.mask_sample = sample_from_cv2(mask_image).half().to(root.device)
+                    else:
+                        args.mask_sample = sample_from_cv2(mask_image).to(root.device)
+
                 turbo_prev_frame_idx = turbo_next_frame_idx = tween_frame_idx
 
                 if turbo_prev_image is not None and tween < 1.0:
@@ -225,13 +240,30 @@ def render_animation(args, anim_args, animation_prompts, root):
 
         # apply transforms to previous frame
         if prev_sample is not None:
-            if anim_args.animation_mode == '2D':
-                prev_img = anim_frame_warp_2d(sample_to_cv2(prev_sample), args, anim_args, keys, frame_idx)
-            else: # '3D'
-                prev_img_cv2 = sample_to_cv2(prev_sample)
-                depth = depth_model.predict(prev_img_cv2, anim_args) if depth_model else None
-                prev_img = anim_frame_warp_3d(root.device, prev_img_cv2, depth, anim_args, keys, frame_idx)
+            prev_img, depth = anim_frame_warp(prev_sample, args, anim_args, keys, frame_idx, depth_model, depth=None, device=root.device)
+            
+            # Transformed raw image before color coherence and noise. Used for mask overlay
+            if args.use_mask and args.overlay_mask:
+                # Apply transforms to the original image
+                init_image_raw, _ = anim_frame_warp(args.init_sample_raw, args, anim_args, keys, frame_idx, depth_model, depth, device=root.device)
+                
+                if root.half_precision:
+                    args.init_sample_raw = sample_from_cv2(init_image_raw).half().to(root.device)
+                else:
+                    args.init_sample_raw = sample_from_cv2(init_image_raw).to(root.device)
 
+            #Transform the mask image
+            if args.use_mask:
+                if args.mask_sample is None:
+                    args.mask_sample = prepare_overlay_mask(args, root, prev_sample.shape)
+                # Transform the mask
+                mask_sample, _ = anim_frame_warp(args.mask_sample, args, anim_args, keys, frame_idx, depth_model, depth, device=root.device)
+                
+                if root.half_precision:
+                    args.mask_sample = sample_from_cv2(mask_sample).half().to(root.device)
+                else:
+                    args.mask_sample = sample_from_cv2(mask_sample).to(root.device)
+            
             # apply color matching
             if anim_args.color_coherence != 'None':
                 if color_match_sample is None:
@@ -272,8 +304,12 @@ def render_animation(args, anim_args, animation_prompts, root):
 
         # sample the diffusion model
         sample, image = generate(args, root, frame_idx, return_latent=False, return_sample=True)
+        # First image sample used for masking
         if not using_vid_init:
             prev_sample = sample
+            if args.use_mask and args.overlay_mask:
+                if args.init_sample_raw is None:
+                        args.init_sample_raw = sample
 
         if turbo_steps > 1:
             turbo_prev_image, turbo_prev_frame_idx = turbo_next_image, turbo_next_frame_idx
