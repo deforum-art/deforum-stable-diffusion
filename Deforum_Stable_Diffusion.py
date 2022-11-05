@@ -302,6 +302,8 @@ def DeforumArgs():
     timestring = ""
     init_latent = None
     init_sample = None
+    init_sample_raw = None
+    mask_sample = None
     init_c = None
 
     return locals()

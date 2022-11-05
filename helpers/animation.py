@@ -162,6 +162,21 @@ def warpMatrix(W, H, theta, phi, gamma, scale, fV):
 
     return M33, sideLength
 
+def anim_frame_warp(prev, args, anim_args, keys, frame_idx, depth_model=None, depth=None, device='cuda'):
+    if isinstance(prev, np.ndarray):
+        prev_img_cv2 = prev
+    else:
+        prev_img_cv2 = sample_to_cv2(prev)
+
+    if depth is None:
+        depth = depth_model.predict(prev_img_cv2, anim_args) if depth_model else None
+    if anim_args.animation_mode == '2D':
+        prev_img = anim_frame_warp_2d(prev_img_cv2, args, anim_args, keys, frame_idx)
+    else: # '3D'
+        prev_img = anim_frame_warp_3d(device, prev_img_cv2, depth, anim_args, keys, frame_idx)
+                
+    return prev_img, depth
+
 def anim_frame_warp_2d(prev_img_cv2, args, anim_args, keys, frame_idx):
     angle = keys.angle_series[frame_idx]
     zoom = keys.zoom_series[frame_idx]
