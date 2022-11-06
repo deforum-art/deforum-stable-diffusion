@@ -203,6 +203,7 @@ animation_prompts = {
 # !!   "id": "XVzhbmizWM_u"
 # !! }}
 override_settings_with_file = False #@param {type:"boolean"}
+settings_file = "custom" #@param ["custom", "512x512_aesthetic_0.json","512x512_aesthetic_1.json","512x512_colormatch_0.json","512x512_colormatch_1.json","512x512_colormatch_2.json","512x512_colormatch_3.json"]
 custom_settings_file = "/content/drive/MyDrive/Settings.txt"#@param {type:"string"}
 
 def DeforumArgs():
@@ -316,7 +317,7 @@ args_dict = DeforumArgs()
 anim_args_dict = DeforumAnimArgs()
 
 if override_settings_with_file:
-    load_args(args_dict,anim_args_dict,custom_settings_file, verbose=False)
+    load_args(args_dict, anim_args_dict, settings_file, custom_settings_file, verbose=False)
 
 args = SimpleNamespace(**args_dict)
 anim_args = SimpleNamespace(**anim_args_dict)
