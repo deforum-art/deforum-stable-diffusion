@@ -24,7 +24,7 @@ def make_linear_decode(model_version, device='cuda:0'):
 
     return linear_decode
 
-def load_model(root):
+def load_model(root, load_on_run_all=True, check_sha256=True):
 
     import requests
     import torch
@@ -32,10 +32,6 @@ def load_model(root):
     from omegaconf import OmegaConf
     from transformers import logging
     logging.set_verbosity_error()
-
-    load_on_run_all = True
-    half_precision = True
-    check_sha256 = True
 
     try:
         ipy = get_ipython()
@@ -207,7 +203,7 @@ def load_model(root):
 
     if load_on_run_all and ckpt_valid:
         local_config = OmegaConf.load(f"{ckpt_config_path}")
-        model = load_model_from_config(local_config, f"{ckpt_path}", half_precision=half_precision)
+        model = load_model_from_config(local_config, f"{ckpt_path}", half_precision=root.half_precision)
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         model = model.to(device)
 

@@ -102,7 +102,11 @@ root.custom_checkpoint_path = "" #@param {type:"string"}
 root.half_precision = True
 
 root.models_path, root.output_path = get_model_output_paths(root)
-root.model, root.device = load_model(root)
+root.model, root.device = load_model(root, 
+                                    load_on_run_all=True #@param {type: 'boolean'}
+                                    , 
+                                    check_sha256=True #@param {type: 'boolean'}
+                                    )
 
 # %%
 # !! {"metadata":{
