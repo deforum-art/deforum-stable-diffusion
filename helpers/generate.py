@@ -208,7 +208,7 @@ def generate(args, root, frame = 0, return_latent=False, return_sample=False, re
                     if args.init_c != None:
                         c = args.init_c
 
-                    if args.sampler in ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral"]:
+                    if args.sampler in ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral", "dpm_fast", "dpm_adaptive", "dpmpp_2s_a", "dpmpp_2m"]:
                         samples = sampler_fn(
                             c=c, 
                             uc=uc, 
