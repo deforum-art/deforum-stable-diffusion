@@ -163,6 +163,9 @@ def generate(args, root, frame = 0, return_latent=False, return_sample=False, re
         [aesthetics_loss_fn,        args.aesthetics_scale]
     ]
 
+    # Conditioning gradients not implemented for ddim or PLMS
+    assert not( any([cond_fs[1]!=0 for cond_fs in loss_fns_scales]) and (args.sampler in ["ddim","plms"]) ), "Conditioning gradients not implemented for ddim or plms. Please use a different sampler."
+
     callback = SamplerCallback(args=args,
                             root=root,
                             mask=mask, 
