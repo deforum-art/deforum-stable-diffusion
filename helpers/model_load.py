@@ -24,7 +24,7 @@ def make_linear_decode(model_version, device='cuda:0'):
 
     return linear_decode
 
-def load_model(root):
+def load_model(root, load_on_run_all=True, check_sha256=True):
 
     import requests
     import torch
@@ -32,10 +32,6 @@ def load_model(root):
     from omegaconf import OmegaConf
     from transformers import logging
     logging.set_verbosity_error()
-
-    load_on_run_all = True
-    half_precision = True
-    check_sha256 = True
 
     try:
         ipy = get_ipython()
@@ -111,12 +107,14 @@ def load_model(root):
     }
 
     # config path
-    ckpt_config_path = root.custom_config_path if root.model_config == "custom" else os.path.join(root.models_path, root.model_config)
+    ckpt_config_path = root.custom_config_path if root.model_config == "custom" else os.path.join(root.configs_path, root.model_config)
 
     if os.path.exists(ckpt_config_path):
         print(f"{ckpt_config_path} exists")
     else:
+        print(f"Warning: {ckpt_config_path} does not exist.")
         ckpt_config_path = os.path.join(path_extend,"configs","v1-inference.yaml")
+        print(f"Using {ckpt_config_path} instead.")
         
     ckpt_config_path = os.path.abspath(ckpt_config_path)
 
@@ -207,7 +205,7 @@ def load_model(root):
 
     if load_on_run_all and ckpt_valid:
         local_config = OmegaConf.load(f"{ckpt_config_path}")
-        model = load_model_from_config(local_config, f"{ckpt_path}", half_precision=half_precision)
+        model = load_model_from_config(local_config, f"{ckpt_path}", half_precision=root.half_precision)
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         model = model.to(device)
 

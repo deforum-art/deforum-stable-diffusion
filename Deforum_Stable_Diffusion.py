@@ -89,6 +89,7 @@ root = Root()
 root = SimpleNamespace(**root)
 
 root.models_path = "models" #@param {type:"string"}
+root.configs_path = "configs" #@param {type:"string"}
 root.output_path = "output" #@param {type:"string"}
 root.mount_google_drive = True #@param {type:"boolean"}
 root.models_path_gdrive = "/content/drive/MyDrive/AI/models" #@param {type:"string"}
@@ -102,7 +103,11 @@ root.custom_checkpoint_path = "" #@param {type:"string"}
 root.half_precision = True
 
 root.models_path, root.output_path = get_model_output_paths(root)
-root.model, root.device = load_model(root)
+root.model, root.device = load_model(root, 
+                                    load_on_run_all=True #@param {type: 'boolean'}
+                                    , 
+                                    check_sha256=True #@param {type: 'boolean'}
+                                    )
 
 # %%
 # !! {"metadata":{
@@ -199,6 +204,7 @@ animation_prompts = {
 # !!   "id": "XVzhbmizWM_u"
 # !! }}
 override_settings_with_file = False #@param {type:"boolean"}
+settings_file = "custom" #@param ["custom", "512x512_aesthetic_0.json","512x512_aesthetic_1.json","512x512_colormatch_0.json","512x512_colormatch_1.json","512x512_colormatch_2.json","512x512_colormatch_3.json"]
 custom_settings_file = "/content/drive/MyDrive/Settings.txt"#@param {type:"string"}
 
 def DeforumArgs():
@@ -209,7 +215,7 @@ def DeforumArgs():
 
     #@markdown **Sampling Settings**
     seed = -1 #@param
-    sampler = 'euler_ancestral' #@param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim"]
+    sampler = 'euler_ancestral' #@param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim", "dpm_fast", "dpm_adaptive", "dpmpp_2s_a", "dpmpp_2m"]
     steps = 80 #@param
     scale = 7 #@param
     ddim_eta = 0.0 #@param
@@ -302,6 +308,8 @@ def DeforumArgs():
     timestring = ""
     init_latent = None
     init_sample = None
+    init_sample_raw = None
+    mask_sample = None
     init_c = None
 
     return locals()
@@ -310,7 +318,7 @@ args_dict = DeforumArgs()
 anim_args_dict = DeforumAnimArgs()
 
 if override_settings_with_file:
-    load_args(args_dict,anim_args_dict,custom_settings_file, verbose=False)
+    load_args(args_dict, anim_args_dict, settings_file, custom_settings_file, verbose=False)
 
 args = SimpleNamespace(**args_dict)
 anim_args = SimpleNamespace(**anim_args_dict)
@@ -371,7 +379,7 @@ fps = 12 #@param {type:"number"}
 #@markdown **Manual Settings**
 use_manual_settings = False #@param {type:"boolean"}
 image_path = "/content/drive/MyDrive/AI/StableDiffusion/2022-09/20220903000939_%05d.png" #@param {type:"string"}
-mp4_path = "/content/drive/MyDrive/AI/StableDiffu'/content/drive/MyDrive/AI/StableDiffusion/2022-09/sion/2022-09/20220903000939.mp4" #@param {type:"string"}
+mp4_path = "/content/drive/MyDrive/AI/StableDiffusion/2022-09/20220903000939.mp4" #@param {type:"string"}
 render_steps = False  #@param {type: 'boolean'}
 path_name_modifier = "x0_pred" #@param ["x0_pred","x"]
 

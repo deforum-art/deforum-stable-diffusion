@@ -103,12 +103,9 @@ class CFGDenoiserWithGrad(CompVisDenoiser):
 
         # Add gradient to the image
         if self.gradient_wrt == 'x':
-            # x.copy_(x.detach() + total_cond_grad * k_utils.append_dims(sigma, x.ndim))
             x.copy_(self.grad_consolidate_fn(x.detach(), total_cond_grad, k_utils.append_dims(sigma, x.ndim)))
             cond_denoised = inner_model(x, sigma, **kwargs)
         elif self.gradient_wrt == 'x0_pred':
-            # x.copy_(x.detach() + total_cond_grad * k_utils.append_dims(sigma, x.ndim))
-            # cond_denoised = denoised.detach() + total_cond_grad * k_utils.append_dims(sigma, x.ndim)
             x.copy_(self.grad_consolidate_fn(x.detach(), total_cond_grad, k_utils.append_dims(sigma, x.ndim)))
             cond_denoised = self.grad_consolidate_fn(denoised.detach(), total_cond_grad, k_utils.append_dims(sigma, x.ndim))
 
@@ -207,21 +204,6 @@ class CFGDenoiserWithGrad(CompVisDenoiser):
         return grad
 
     def check_conditioning_schedule(self, sigma):
-        # what if instead we did a setting for how to multiply the gradient. right now it's just multiplied by sigma
-        # what if instead it uses a function applied to the grad and sigma
-        # default is grad_magnitude_fn(grad, sigma): return grad*sigma
-        # or you could have grad_magnitude_fn(grad, sigma): return if sigma > 1 return grad*sigma
-        # but then how would you check if it returns zero then don't even calculate it, that needs to be determined in a different way
-        # or it could be grad_consolidate_fn(img, grad, sigma): return img + grad*sigma
-        # why not both?
-
-        # Do we want?:
-        # every nth step
-        # array of steps
-        # steps should be expressed as a number between 0 and 1
-        # k_sigmas = self.inner_model.get_sigmas(args.steps) 
-        #  so sigma = self.inner_model.t_to_sigma(t)
-
         is_conditioning_step = False
 
         if (self.cond_fns is not None and 
@@ -233,37 +215,6 @@ class CFGDenoiserWithGrad(CompVisDenoiser):
 
                 if self.verbose:
                     print(f"Conditioning step for sigma={sigma}")
-                
-
-            # if self.grad_inject_timing is None:
-            #     is_conditioning_step = True
-            # elif isinstance(self.grad_inject_timing,int) or isinstance(self.grad_inject_timing,float):
-            #     # compute grad every nth step
-            #     t = torch.tensor(self.grad_inject_timing)
-            #     sigma_t = self.inner_model.t_to_sigma(t)
-            #     if sigma_t == sigma:
-            #         is_conditioning_step = True
-            #     print('t',t,'sigma_t',sigma_t,'sigma',sigma)
-            # elif isinstance(self.grad_inject_timing,list):
-            #     # compute grad if this step is in the list of steps
-            #     total_steps = 50
-            #     # t_list = [self.inner_model.sigma_to_t(sigma,quantize=False))]
-
-            #     sigma_list = [self.inner_model.get_sigmas(total_steps)[i-1] for i in self.grad_inject_timing]
-            #     # sigma_list = [self.inner_model.t_to_sigma(torch.tensor(t)*1000/total_steps) for t in self.grad_inject_timing]
-            #     if sigma in sigma_list:
-            #         is_conditioning_step = True
-            #         print('!!!Using conditioning now!')
-            #     else:
-            #         print('no conditioning :|')
-                # print('sig2t', self.inner_model.sigma_to_t(sigma,quantize=True))
-                # print('sig2t noquantize', self.inner_model.sigma_to_t(sigma,quantize=False))
-                # print('model getsigmas', self.inner_model.get_sigmas(total_steps))
-                # print('model sigmas',self.inner_model.sigmas)
-                # print('quantized sigma',self.inner_model.t_to_sigma(self.inner_model.sigma_to_t(sigma)) )
-                # print('quantized t',self.inner_model.sigma_to_t(self.inner_model.t_to_sigma(t)) )
-                # print('sigma_list',sigma_list)
-                # print('sigma',sigma)
 
         return is_conditioning_step
 

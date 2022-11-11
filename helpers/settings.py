@@ -1,12 +1,19 @@
 import os
 import json
 
-def load_args(args_dict,anim_args_dict, custom_settings_file, verbose=True):
-    print(f"reading custom settings from {custom_settings_file}")
-    if not os.path.isfile(custom_settings_file):
-        print('The custom settings file does not exist. The in-notebook settings will be used instead')
+def load_args(args_dict, anim_args_dict, settings_file, custom_settings_file, verbose=True):
+    default_settings_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'settings'))  
+    if settings_file.lower() == 'custom':
+        settings_filename = custom_settings_file
     else:
-        with open(custom_settings_file, "r") as f:
+        settings_filename = os.path.join(default_settings_dir,settings_file)
+    print(f"Reading custom settings from {settings_filename}...")
+    if not os.path.isfile(settings_filename):
+        print('The settings file does not exist. The in-notebook settings will be used instead.')
+    else:
+        if not verbose:
+            print(f"Any settings not included in {settings_filename} will use the in-notebook settings by default.")
+        with open(settings_filename, "r") as f:
             jdata = json.loads(f.read())
             if jdata.get("prompts") is not None:
                 animation_prompts = jdata["prompts"]
