@@ -480,5 +480,5 @@ else:
 # !!     "collapsed_sections": []
 # !!   },
 # !!   "accelerator": "GPU",
-# !!   "gpuClass": "premium"
+# !!   "gpuClass": "standard"
 # !! }}

@@ -39,7 +39,7 @@ def load_model(root, load_on_run_all=True, check_sha256=True):
         ipy = 'could not get_ipython'
 
     if 'google.colab' in str(ipy):
-        path_extend = "stable-diffusion"
+        path_extend = "deforum-stable-diffusion"
     else:
         path_extend = ""
 
