@@ -89,6 +89,7 @@ root = Root()
 root = SimpleNamespace(**root)
 
 root.models_path = "models" #@param {type:"string"}
+root.configs_path = "configs" #@param {type:"string"}
 root.output_path = "output" #@param {type:"string"}
 root.mount_google_drive = True #@param {type:"boolean"}
 root.models_path_gdrive = "/content/drive/MyDrive/AI/models" #@param {type:"string"}
@@ -378,7 +379,7 @@ fps = 12 #@param {type:"number"}
 #@markdown **Manual Settings**
 use_manual_settings = False #@param {type:"boolean"}
 image_path = "/content/drive/MyDrive/AI/StableDiffusion/2022-09/20220903000939_%05d.png" #@param {type:"string"}
-mp4_path = "/content/drive/MyDrive/AI/StableDiffu'/content/drive/MyDrive/AI/StableDiffusion/2022-09/sion/2022-09/20220903000939.mp4" #@param {type:"string"}
+mp4_path = "/content/drive/MyDrive/AI/StableDiffusion/2022-09/20220903000939.mp4" #@param {type:"string"}
 render_steps = False  #@param {type: 'boolean'}
 path_name_modifier = "x0_pred" #@param ["x0_pred","x"]
 
