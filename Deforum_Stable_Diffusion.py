@@ -32,15 +32,18 @@ print(f"{sub_p_res[:-1]}")
 # !!   "cellView": "form",
 # !!   "id": "0D2HQO-PWM_t"
 # !! }}
+
+import subprocess, time, gc
+
 def setup_environment():
     print_subprocess = False
+    use_xformers = True
     try:
         ipy = get_ipython()
     except:
         ipy = 'could not get_ipython'
     if 'google.colab' in str(ipy):
-        import subprocess, time
-        print("Setting up environment...")
+        print("..setting up environment")
         start_time = time.time()
         all_process = [
             ['pip', 'install', 'torch==1.12.1+cu113', 'torchvision==0.13.1+cu113', '--extra-index-url', 'https://download.pytorch.org/whl/cu113'],
@@ -59,6 +62,44 @@ def setup_environment():
             'deforum-stable-diffusion/src',
         ])
         end_time = time.time()
+
+    if use_xformers:
+
+        print("..installing xformers")
+
+        all_process = [['pip', 'install', 'triton==2.0.0.dev20220701']]
+        for process in all_process:
+            running = subprocess.run(process,stdout=subprocess.PIPE).stdout.decode('utf-8')
+            if print_subprocess:
+                print(running)
+                
+        v_card_name = subprocess.run(['nvidia-smi', '--query-gpu=name', '--format=csv,noheader'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+        if 't4' in v_card_name.lower():
+            name_to_download = 'T4'
+        elif 'v100' in v_card_name.lower():
+            name_to_download = 'V100'
+        elif 'a100' in v_card_name.lower():
+            name_to_download = 'A100'
+        elif 'p100' in v_card_name.lower():
+            name_to_download = 'P100'
+        else:
+            print(v_card_name + ' is currently not supported with xformers flash attention in deforum!')
+
+        x_ver = 'xformers-0.0.13.dev0-py3-none-any.whl'
+        x_link = 'https://github.com/TheLastBen/fast-stable-diffusion/raw/main/precompiled/' + name_to_download + '/' + x_ver
+    
+        all_process = [
+            ['wget', x_link],
+            ['pip', 'install', x_ver],
+            ['mv', 'deforum-stable-diffusion/src/ldm/modules/attention.py', 'deforum-stable-diffusion/src/ldm/modules/attention_backup.py'],
+            ['mv', 'deforum-stable-diffusion/src/ldm/modules/attention_xformers.py', 'deforum-stable-diffusion/src/ldm/modules/attention.py']
+        ]
+
+        for process in all_process:
+            running = subprocess.run(process,stdout=subprocess.PIPE).stdout.decode('utf-8')
+            if print_subprocess:
+                print(running)
+
         print(f"Environment set up in {end_time-start_time:.0f} seconds")
     else:
         sys.path.extend([
@@ -69,8 +110,6 @@ def setup_environment():
 setup_environment()
 
 import torch
-import gc
-import time
 import random
 import clip
 from IPython import display
@@ -382,7 +421,6 @@ image_path = "/content/drive/MyDrive/AI/StableDiffusion/2022-09/20220903000939_%
 mp4_path = "/content/drive/MyDrive/AI/StableDiffusion/2022-09/20220903000939.mp4" #@param {type:"string"}
 render_steps = False  #@param {type: 'boolean'}
 path_name_modifier = "x0_pred" #@param ["x0_pred","x"]
-make_gif = False  #@param {type: 'boolean'}
 
 
 if skip_video_for_run_all == True:
@@ -428,7 +466,6 @@ else:
         '-pattern_type', 'sequence',
         mp4_path
     ]
-
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
     if process.returncode != 0:
@@ -438,17 +475,6 @@ else:
     mp4 = open(mp4_path,'rb').read()
     data_url = "data:video/mp4;base64," + b64encode(mp4).decode()
     display.display(display.HTML(f'<video controls loop><source src="{data_url}" type="video/mp4"></video>') )
-
-    if make_gif:
-        gif_path = os.path.splitext(mp4_path)[0]+'.gif'
-        cmd_gif = [
-            'ffmpeg',
-            '-y',
-            '-i', mp4_path,
-            '-r', str(fps),
-            gif_path
-        ]
-        process_gif = subprocess.Popen(cmd_gif, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 # %%
 # !! {"metadata":{
@@ -465,6 +491,12 @@ else:
 
 # %%
 # !! {"main_metadata":{
+# !!   "accelerator": "GPU",
+# !!   "colab": {
+# !!     "collapsed_sections": [],
+# !!     "provenance": []
+# !!   },
+# !!   "gpuClass": "standard",
 # !!   "kernelspec": {
 # !!     "display_name": "Python 3.10.6 ('dsd')",
 # !!     "language": "python",
@@ -487,11 +519,5 @@ else:
 # !!     "interpreter": {
 # !!       "hash": "b7e04c8a9537645cbc77fa0cbde8069bc94e341b0d5ced104651213865b24e58"
 # !!     }
-# !!   },
-# !!   "colab": {
-# !!     "provenance": [],
-# !!     "collapsed_sections": []
-# !!   },
-# !!   "accelerator": "GPU",
-# !!   "gpuClass": "standard"
+# !!   }
 # !! }}
