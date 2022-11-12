@@ -491,12 +491,6 @@ else:
 
 # %%
 # !! {"main_metadata":{
-# !!   "accelerator": "GPU",
-# !!   "colab": {
-# !!     "collapsed_sections": [],
-# !!     "provenance": []
-# !!   },
-# !!   "gpuClass": "standard",
 # !!   "kernelspec": {
 # !!     "display_name": "Python 3.10.6 ('dsd')",
 # !!     "language": "python",
@@ -519,5 +513,11 @@ else:
 # !!     "interpreter": {
 # !!       "hash": "b7e04c8a9537645cbc77fa0cbde8069bc94e341b0d5ced104651213865b24e58"
 # !!     }
-# !!   }
+# !!   },
+# !!   "colab": {
+# !!     "provenance": [],
+# !!     "collapsed_sections": []
+# !!   },
+# !!   "accelerator": "GPU",
+# !!   "gpuClass": "standard"
 # !! }}
