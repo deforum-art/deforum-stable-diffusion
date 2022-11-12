@@ -32,15 +32,18 @@ print(f"{sub_p_res[:-1]}")
 # !!   "cellView": "form",
 # !!   "id": "0D2HQO-PWM_t"
 # !! }}
+
+import subprocess, time, gc
+
 def setup_environment():
     print_subprocess = False
+    use_xformers = True
     try:
         ipy = get_ipython()
     except:
         ipy = 'could not get_ipython'
     if 'google.colab' in str(ipy):
-        import subprocess, time
-        print("Setting up environment...")
+        print("..setting up environment")
         start_time = time.time()
         all_process = [
             ['pip', 'install', 'torch==1.12.1+cu113', 'torchvision==0.13.1+cu113', '--extra-index-url', 'https://download.pytorch.org/whl/cu113'],
@@ -59,6 +62,44 @@ def setup_environment():
             'deforum-stable-diffusion/src',
         ])
         end_time = time.time()
+
+    if use_xformers:
+
+        print("..installing xformers")
+
+        all_process = [['pip', 'install', 'triton==2.0.0.dev20220701']]
+        for process in all_process:
+            running = subprocess.run(process,stdout=subprocess.PIPE).stdout.decode('utf-8')
+            if print_subprocess:
+                print(running)
+                
+        v_card_name = subprocess.run(['nvidia-smi', '--query-gpu=name', '--format=csv,noheader'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+        if 't4' in v_card_name.lower():
+            name_to_download = 'T4'
+        elif 'v100' in v_card_name.lower():
+            name_to_download = 'V100'
+        elif 'a100' in v_card_name.lower():
+            name_to_download = 'A100'
+        elif 'p100' in v_card_name.lower():
+            name_to_download = 'P100'
+        else:
+            print(v_card_name + ' is currently not supported with xformers flash attention in deforum!')
+
+        x_ver = 'xformers-0.0.13.dev0-py3-none-any.whl'
+        x_link = 'https://github.com/TheLastBen/fast-stable-diffusion/raw/main/precompiled/' + name_to_download + '/' + x_ver
+    
+        all_process = [
+            ['wget', x_link],
+            ['pip', 'install', x_ver],
+            ['mv', 'deforum-stable-diffusion/src/ldm/modules/attention.py', 'deforum-stable-diffusion/src/ldm/modules/attention_backup.py'],
+            ['mv', 'deforum-stable-diffusion/src/ldm/modules/attention_xformers.py', 'deforum-stable-diffusion/src/ldm/modules/attention.py']
+        ]
+
+        for process in all_process:
+            running = subprocess.run(process,stdout=subprocess.PIPE).stdout.decode('utf-8')
+            if print_subprocess:
+                print(running)
+
         print(f"Environment set up in {end_time-start_time:.0f} seconds")
     else:
         sys.path.extend([
@@ -69,8 +110,6 @@ def setup_environment():
 setup_environment()
 
 import torch
-import gc
-import time
 import random
 import clip
 from IPython import display
