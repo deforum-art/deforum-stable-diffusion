@@ -6,6 +6,8 @@
 # **Deforum Stable Diffusion v0.6**
 [Stable Diffusion](https://github.com/CompVis/stable-diffusion) by Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, Björn Ommer and the [Stability.ai](https://stability.ai/) Team. [K Diffusion](https://github.com/crowsonkb/k-diffusion) by [Katherine Crowson](https://twitter.com/RiversHaveWings).
 
+[Quick Guide](https://docs.google.com/document/d/1RrQv7FntzOuLg4ohjRZPVL7iptIyBhwwbcEYEW2OfcI/edit?usp=sharing) to Deforum v0.6
+
 Notebook by [deforum](https://discord.gg/upmXXsrwZc)
 """
 
@@ -123,29 +125,29 @@ from helpers.aesthetics import load_aesthetics_model
 #@markdown **Path Setup**
 
 def Root():
+    models_path = "models" #@param {type:"string"}
+    configs_path = "configs" #@param {type:"string"}
+    output_path = "output" #@param {type:"string"}
+    mount_google_drive = True #@param {type:"boolean"}
+    models_path_gdrive = "/content/drive/MyDrive/AI/models" #@param {type:"string"}
+    output_path_gdrive = "/content/drive/MyDrive/AI/StableDiffusion" #@param {type:"string"}
+
+    #@markdown **Model Setup**
+    model_config = "v1-inference.yaml" #@param ["custom","v1-inference.yaml"]
+    model_checkpoint =  "v1-5-pruned-emaonly.ckpt" #@param ["custom","v1-5-pruned.ckpt","v1-5-pruned-emaonly.ckpt","sd-v1-4-full-ema.ckpt","sd-v1-4.ckpt","sd-v1-3-full-ema.ckpt","sd-v1-3.ckpt","sd-v1-2-full-ema.ckpt","sd-v1-2.ckpt","sd-v1-1-full-ema.ckpt","sd-v1-1.ckpt", "robo-diffusion-v1.ckpt","wd-v1-3-float16.ckpt"]
+    custom_config_path = "" #@param {type:"string"}
+    custom_checkpoint_path = "" #@param {type:"string"}
+    half_precision = True
     return locals()
+
 root = Root()
 root = SimpleNamespace(**root)
 
-root.models_path = "models" #@param {type:"string"}
-root.configs_path = "configs" #@param {type:"string"}
-root.output_path = "output" #@param {type:"string"}
-root.mount_google_drive = True #@param {type:"boolean"}
-root.models_path_gdrive = "/content/drive/MyDrive/AI/models" #@param {type:"string"}
-root.output_path_gdrive = "/content/drive/MyDrive/AI/StableDiffusion" #@param {type:"string"}
-
-#@markdown **Model Setup**
-root.model_config = "v1-inference.yaml" #@param ["custom","v1-inference.yaml"]
-root.model_checkpoint =  "v1-5-pruned-emaonly.ckpt" #@param ["custom","v1-5-pruned.ckpt","v1-5-pruned-emaonly.ckpt","sd-v1-4-full-ema.ckpt","sd-v1-4.ckpt","sd-v1-3-full-ema.ckpt","sd-v1-3.ckpt","sd-v1-2-full-ema.ckpt","sd-v1-2.ckpt","sd-v1-1-full-ema.ckpt","sd-v1-1.ckpt", "robo-diffusion-v1.ckpt","wd-v1-3-float16.ckpt"]
-root.custom_config_path = "" #@param {type:"string"}
-root.custom_checkpoint_path = "" #@param {type:"string"}
-root.half_precision = True
-
 root.models_path, root.output_path = get_model_output_paths(root)
 root.model, root.device = load_model(root, 
-                                    load_on_run_all=True #@param {type: 'boolean'}
+                                    load_on_run_all=True
                                     , 
-                                    check_sha256=True #@param {type: 'boolean'}
+                                    check_sha256=True
                                     )
 
 # %%
@@ -242,6 +244,7 @@ animation_prompts = {
 # !!   "cellView": "form",
 # !!   "id": "XVzhbmizWM_u"
 # !! }}
+#@markdown **Load Settings**
 override_settings_with_file = False #@param {type:"boolean"}
 settings_file = "custom" #@param ["custom", "512x512_aesthetic_0.json","512x512_aesthetic_1.json","512x512_colormatch_0.json","512x512_colormatch_1.json","512x512_colormatch_2.json","512x512_colormatch_3.json"]
 custom_settings_file = "/content/drive/MyDrive/Settings.txt"#@param {type:"string"}
