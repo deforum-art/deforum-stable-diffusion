@@ -424,7 +424,7 @@ image_path = "/content/drive/MyDrive/AI/StableDiffusion/2022-09/20220903000939_%
 mp4_path = "/content/drive/MyDrive/AI/StableDiffusion/2022-09/20220903000939.mp4" #@param {type:"string"}
 render_steps = False  #@param {type: 'boolean'}
 path_name_modifier = "x0_pred" #@param ["x0_pred","x"]
-
+make_gif = False
 
 if skip_video_for_run_all == True:
     print('Skipping video creation, uncheck skip_video_for_run_all if you want to run it')
@@ -478,6 +478,17 @@ else:
     mp4 = open(mp4_path,'rb').read()
     data_url = "data:video/mp4;base64," + b64encode(mp4).decode()
     display.display(display.HTML(f'<video controls loop><source src="{data_url}" type="video/mp4"></video>') )
+    
+    if make_gif:
+         gif_path = os.path.splitext(mp4_path)[0]+'.gif'
+         cmd_gif = [
+             'ffmpeg',
+             '-y',
+             '-i', mp4_path,
+             '-r', str(fps),
+             gif_path
+         ]
+         process_gif = subprocess.Popen(cmd_gif, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 # %%
 # !! {"metadata":{
