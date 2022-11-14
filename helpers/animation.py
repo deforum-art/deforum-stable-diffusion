@@ -168,8 +168,12 @@ def anim_frame_warp(prev, args, anim_args, keys, frame_idx, depth_model=None, de
     else:
         prev_img_cv2 = sample_to_cv2(prev)
 
-    if depth is None:
-        depth = depth_model.predict(prev_img_cv2, anim_args) if depth_model else None
+    if anim_args.use_depth_warping:
+        if depth is None and depth_model is not None:
+            depth = depth_model.predict(prev_img_cv2, anim_args)
+    else:
+        depth = None
+
     if anim_args.animation_mode == '2D':
         prev_img = anim_frame_warp_2d(prev_img_cv2, args, anim_args, keys, frame_idx)
     else: # '3D'
@@ -236,7 +240,10 @@ def transform_image_3d(device, prev_img_cv2, depth_tensor, rot_mat, translate, a
 
     # range of [-1,1] is important to torch grid_sample's padding handling
     y,x = torch.meshgrid(torch.linspace(-1.,1.,h,dtype=torch.float32,device=device),torch.linspace(-1.,1.,w,dtype=torch.float32,device=device))
-    z = torch.as_tensor(depth_tensor, dtype=torch.float32, device=device)
+    if depth_tensor is None:
+        z = torch.ones_like(x)
+    else:
+        z = torch.as_tensor(depth_tensor, dtype=torch.float32, device=device)
     xyz_old_world = torch.stack((x.flatten(), y.flatten(), z.flatten()), dim=1)
 
     xyz_old_cam_xy = persp_cam_old.get_full_projection_transform().transform_points(xyz_old_world)[:,0:2]

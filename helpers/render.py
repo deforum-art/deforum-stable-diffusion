@@ -319,8 +319,7 @@ def render_animation(args, anim_args, animation_prompts, root):
             filename = f"{args.timestring}_{frame_idx:05}.png"
             image.save(os.path.join(args.outdir, filename))
             if anim_args.save_depth_maps:
-                if depth is None:
-                    depth = depth_model.predict(sample_to_cv2(sample), anim_args)
+                depth = depth_model.predict(sample_to_cv2(sample), anim_args)
                 depth_model.save(os.path.join(args.outdir, f"{args.timestring}_depth_{frame_idx:05}.png"), depth)
             frame_idx += 1
 
