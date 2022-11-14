@@ -1,9 +1,11 @@
-import math, os, subprocess
 import cv2
+import math
 import numpy as np
+import os
+import requests
 import torch
 import torchvision.transforms as T
-import requests
+import torchvision.transforms.functional as TF
 
 from einops import rearrange, repeat
 from PIL import Image
@@ -11,7 +13,6 @@ from PIL import Image
 from infer import InferenceHelper
 from midas.dpt_depth import DPTDepthModel
 from midas.transforms import Resize, NormalizeImage, PrepareForNet
-import torchvision.transforms.functional as TF
 
 
 def wget(url, outputdir):
@@ -31,8 +32,6 @@ def wget(url, outputdir):
     # write to model path
     with open(os.path.join(outputdir, filename), 'wb') as model_file:
         model_file.write(ckpt_request.content)
-
-    #print(subprocess.run(['wget', url, '-P', outputdir], stdout=subprocess.PIPE).stdout.decode('utf-8'))
 
 
 class DepthModel():
@@ -57,7 +56,7 @@ class DepthModel():
             wget("https://github.com/intel-isl/DPT/releases/download/1_0/dpt_large-midas-2f21e586.pt", models_path)
 
         self.midas_model = DPTDepthModel(
-            path=f"{models_path}/dpt_large-midas-2f21e586.pt",
+            path=os.path.join(models_path, "dpt_large-midas-2f21e586.pt"),
             backbone="vitl16_384",
             non_negative=True,
         )
@@ -117,6 +116,7 @@ class DepthModel():
                         torch.Size([h, w]),
                         interpolation=TF.InterpolationMode.BICUBIC
                     )
+                    adabins_depth = adabins_depth.cpu().numpy()
                 adabins_depth = adabins_depth.squeeze()
             except:
                 print(f"  exception encountered, falling back to pure MiDaS")
