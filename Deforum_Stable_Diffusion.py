@@ -224,7 +224,7 @@ def DeforumAnimArgs():
 # !!   "id": "i9fly1RIWM_u"
 # !! }}
 prompts = [
-    "a beautiful forest by Asher Brown Durand, trending on Artstation", # the first prompt I want
+    "a beautiful lake by Asher Brown Durand, trending on Artstation", # the first prompt I want
     "a beautiful portrait of a woman by Artgerm, trending on Artstation", # the second prompt I want
     #"this prompt I don't want it I commented it out",
     #"a nousr robot, trending on Artstation", # use "nousr robot" with the robot diffusion model (see model_checkpoint setting)
@@ -257,7 +257,7 @@ def DeforumArgs():
 
     #@markdown **Sampling Settings**
     seed = -1 #@param
-    sampler = 'euler_ancestral' #@param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim", "dpm_fast", "dpm_adaptive", "dpmpp_2s_a", "dpmpp_2m"]
+    sampler = 'dpmpp_2s_a' #@param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim", "dpm_fast", "dpm_adaptive", "dpmpp_2s_a", "dpmpp_2m"]
     steps = 80 #@param
     scale = 7 #@param
     ddim_eta = 0.0 #@param
@@ -272,8 +272,8 @@ def DeforumArgs():
     show_sample_per_step = False #@param {type:"boolean"}
 
     #@markdown **Prompt Settings**
-    prompt_weighting = False #@param {type:"boolean"}
-    normalize_prompt_weights = False #@param {type:"boolean"}
+    prompt_weighting = True #@param {type:"boolean"}
+    normalize_prompt_weights = True #@param {type:"boolean"}
     log_weighted_subprompts = False #@param {type:"boolean"}
 
     #@markdown **Batch Settings**
@@ -336,7 +336,7 @@ def DeforumArgs():
     clamp_grad_threshold = 0.2 #@param {type:"number"}
     clamp_start = 0.2 #@param
     clamp_stop = 0.01 #@param
-    grad_inject_timing = None
+    grad_inject_timing = list(range(1,10)) #@param
 
     #@markdown **Speed vs VRAM Settings**
     cond_uncond_sync = True #@param {type:"boolean"}
@@ -529,8 +529,7 @@ else:
 # !!     }
 # !!   },
 # !!   "colab": {
-# !!     "provenance": [],
-# !!     "collapsed_sections": []
+# !!     "provenance": []
 # !!   },
 # !!   "accelerator": "GPU",
 # !!   "gpuClass": "standard"
