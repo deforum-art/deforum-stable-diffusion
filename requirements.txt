@@ -1,6 +1,9 @@
+ai_tools
 clean-fid
 clip
+cognitive_face
 colab-convert
+dlib
 einops
 ffmpeg
 ftfy
@@ -28,3 +31,4 @@ albumentations
 more_itertools
 devtools
 validators
+zprint
