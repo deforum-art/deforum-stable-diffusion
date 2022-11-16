@@ -61,14 +61,12 @@ pip install -e .
 ```
 xformers can be enabled by switching the attention.py
 ```
-mv src/ldm/modules/attention.py src/ldm/modules/attention_backup.py
-mv src/ldm/modules/attention_xformers.py src/ldm/modules/attention.py
+cp src/ldm/modules/attention_xformers.py src/ldm/modules/attention.py
 
 ```
 to turn off xformers run the following:
 ```
-mv src/ldm/modules/attention.py src/ldm/modules/attention_xformers.py 
-mv src/ldm/modules/attention_backup.py src/ldm/modules/attention.py
+cp src/ldm/modules/attention_backup.py src/ldm/modules/attention.py
 
 ```
 

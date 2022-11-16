@@ -89,12 +89,11 @@ def setup_environment():
 
             x_ver = 'xformers-0.0.13.dev0-py3-none-any.whl'
             x_link = 'https://github.com/TheLastBen/fast-stable-diffusion/raw/main/precompiled/' + name_to_download + '/' + x_ver
-        
+
             all_process = [
                 ['wget', x_link],
                 ['pip', 'install', x_ver],
-                ['mv', 'deforum-stable-diffusion/src/ldm/modules/attention.py', 'deforum-stable-diffusion/src/ldm/modules/attention_backup.py'],
-                ['mv', 'deforum-stable-diffusion/src/ldm/modules/attention_xformers.py', 'deforum-stable-diffusion/src/ldm/modules/attention.py']
+                ['cp', 'deforum-stable-diffusion/src/ldm/modules/attention_xformers.py', 'deforum-stable-diffusion/src/ldm/modules/attention.py']
             ]
 
             for process in all_process:
@@ -103,11 +102,17 @@ def setup_environment():
                     print(running)
 
             print(f"Environment set up in {end_time-start_time:.0f} seconds")
-    else:
-        sys.path.extend([
-            'src'
-        ])
-    return
+        else:
+            all_process = [['cp', 'deforum-stable-diffusion/src/ldm/modules/attention_backup.py', 'deforum-stable-diffusion/src/ldm/modules/attention.py']]
+            for process in all_process:
+                running = subprocess.run(process,stdout=subprocess.PIPE).stdout.decode('utf-8')
+                if print_subprocess:
+                    print(running)
+
+            sys.path.extend([
+                'src'
+            ])
+        return
 
 setup_environment()
 
