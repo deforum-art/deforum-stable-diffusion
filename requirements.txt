@@ -1,4 +1,5 @@
 clean-fid
+clip
 colab-convert
 einops
 ffmpeg
@@ -9,6 +10,7 @@ jsonmerge
 jupyterlab
 jupyter_http_over_ws
 kornia
+ldm
 matplotlib
 notebook
 numexpr
