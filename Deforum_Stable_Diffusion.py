@@ -256,7 +256,7 @@ def DeforumArgs():
     W, H = map(lambda x: x - x % 64, (W, H))  # resize to integer multiple of 64
 
     #@markdown **Sampling Settings**
-    seed = 1 #@param
+    seed = -1 #@param
     sampler = 'dpmpp_2s_a' #@param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim", "dpm_fast", "dpm_adaptive", "dpmpp_2s_a", "dpmpp_2m"]
     steps = 80 #@param
     scale = 7 #@param
