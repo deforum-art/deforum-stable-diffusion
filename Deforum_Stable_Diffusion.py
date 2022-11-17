@@ -35,7 +35,7 @@ print(f"{sub_p_res[:-1]}")
 # !!   "id": "0D2HQO-PWM_t"
 # !! }}
 
-import subprocess, time, gc
+import subprocess, time, gc, os, sys
 
 def setup_environment():
     print_subprocess = False
