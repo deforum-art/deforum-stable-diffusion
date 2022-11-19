@@ -353,6 +353,10 @@ def DeforumArgs():
     init_sample_raw = None
     mask_sample = None
     init_c = None
+    if root.model_checkpoint == 'custom':
+      model = root.custom_checkpoint_path
+    else:
+      model = root.model_checkpoint
 
     return locals()
 
