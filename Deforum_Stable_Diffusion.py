@@ -39,7 +39,7 @@ import subprocess, time, gc, os, sys
 
 def setup_environment():
     print_subprocess = False
-    use_xformers_for_colab = True
+    use_xformers = True
     try:
         ipy = get_ipython()
     except:
@@ -65,7 +65,7 @@ def setup_environment():
         ])
         end_time = time.time()
 
-        if use_xformers_for_colab:
+        if use_xformers:
 
             print("..installing xformers")
 
@@ -84,10 +84,24 @@ def setup_environment():
                 name_to_download = 'A100'
             elif 'p100' in v_card_name.lower():
                 name_to_download = 'P100'
+            elif 'a4000' in v_card_name.lower():
+                name_to_download = 'Non-Colab/Paperspace/A4000'
+            elif 'p5000' in v_card_name.lower():
+                name_to_download = 'Non-Colab/Paperspace/P5000'
+            elif 'quadro m4000' in v_card_name.lower():
+                name_to_download = 'Non-Colab/Paperspace/Quadro M4000'
+            elif 'rtx 4000' in v_card_name.lower():
+                name_to_download = 'Non-Colab/Paperspace/RTX 4000'
+            elif 'rtx 5000' in v_card_name.lower():
+                name_to_download = 'Non-Colab/Paperspace/RTX 5000'
             else:
                 print(v_card_name + ' is currently not supported with xformers flash attention in deforum!')
 
-            x_ver = 'xformers-0.0.13.dev0-py3-none-any.whl'
+            if 'Non-Colab' in name_to_download:
+                x_ver = 'xformers-0.0.14.dev0-cp39-cp39-linux_x86_64.whl'
+            else:
+                x_ver = 'xformers-0.0.13.dev0-py3-none-any.whl'
+
             x_link = 'https://github.com/TheLastBen/fast-stable-diffusion/raw/main/precompiled/' + name_to_download + '/' + x_ver
 
             all_process = [
