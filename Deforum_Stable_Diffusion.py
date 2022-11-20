@@ -145,7 +145,7 @@ from helpers.aesthetics import load_aesthetics_model
 
 def Root():
     models_path = "models" #@param {type:"string"}
-    configs_path = "configs" #@param {type:"string"}
+    configs_path = "deforum-stable-diffusion/configs" #@param {type:"string"}
     output_path = "output" #@param {type:"string"}
     mount_google_drive = True #@param {type:"boolean"}
     models_path_gdrive = "/content/drive/MyDrive/AI/models" #@param {type:"string"}
