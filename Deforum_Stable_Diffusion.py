@@ -105,7 +105,7 @@ def setup_environment():
         x_link = 'https://github.com/TheLastBen/fast-stable-diffusion/raw/main/precompiled/' + name_to_download + '/' + x_ver
 
         all_process = [
-            ['wget', x_link],
+            ['wget', '--no-verbose', '--no-clobber', x_link],
             ['pip', 'install', x_ver],
             ['cp', 'deforum-stable-diffusion/src/ldm/modules/attention_xformers.py', 'deforum-stable-diffusion/src/ldm/modules/attention.py']
         ]
