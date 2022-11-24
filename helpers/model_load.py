@@ -44,7 +44,7 @@ def load_model(root, load_on_run_all=True, check_sha256=True):
         path_extend = ""
 
     model_map = {
-        "512-base-ema.ckpt" {
+        "512-base-ema.ckpt": {
             'sha256': 'd635794c1fedfdfa261e065370bea59c651fc9bfa65dc6d67ad29e11869a1824',
             'url': 'https://huggingface.co/stabilityai/stable-diffusion-2-base/resolve/main/512-base-ema.ckpt',
             'requires_login': True,
