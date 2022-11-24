@@ -118,7 +118,7 @@ def load_model(root, load_on_run_all=True, check_sha256=True):
         print(f"{ckpt_config_path} exists")
     else:
         print(f"Warning: {ckpt_config_path} does not exist.")
-        ckpt_config_path = os.path.join(path_extend,"configs","v1-inference.yaml")
+        ckpt_config_path = os.path.join(path_extend,"configs",root.model_config)
         print(f"Using {ckpt_config_path} instead.")
         
     ckpt_config_path = os.path.abspath(ckpt_config_path)
