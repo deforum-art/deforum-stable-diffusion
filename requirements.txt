@@ -26,3 +26,5 @@ albumentations
 more_itertools
 devtools
 validators
+torchsde
+open_clip_torch
