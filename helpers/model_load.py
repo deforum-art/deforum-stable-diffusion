@@ -186,7 +186,12 @@ def load_model(root, load_on_run_all=True, check_sha256=True):
     def load_model_from_config(config, ckpt, verbose=False, device='cuda', half_precision=True,print_flag=False):
         map_location = "cuda" # ["cpu", "cuda"]
         print(f"..loading model")
-        pl_sd = torch.load(ckpt, map_location=map_location)
+        _ , extension = os.path.splitext(ckpt)
+        if extension.lower() == ".safetensors":
+            import safetensors.torch
+            pl_sd = safetensors.torch.load_file(ckpt, device=map_location)
+        else:
+            pl_sd = torch.load(ckpt, map_location=map_location)
         if "global_step" in pl_sd:
             if print_flag:
                 print(f"Global Step: {pl_sd['global_step']}")
