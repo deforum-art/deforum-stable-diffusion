@@ -164,7 +164,7 @@ def render_animation(args, anim_args, animation_prompts, root):
     # resume animation
     prev_sample = None
     color_match_sample = None
-    if anim_args.resume_from_timestring:
+    if anim_args.resume_from_timestring and not using_vid_init:
         last_frame = start_frame-1
         if turbo_steps > 1:
             last_frame -= last_frame%turbo_steps
