@@ -104,6 +104,18 @@ def render_image_batch(args, prompts, root):
             display.clear_output(wait=True)            
             display.display(grid_image)
 
+def unsharp_mask(img, kernel_size=(5, 5), sigma=1.0, amount=1.0, threshold=0):
+    """Return a sharpened version of the image, using an unsharp mask."""
+    blurred = cv2.GaussianBlur(img, kernel_size, sigma)
+    sharpened = float(amount + 1) * img - float(amount) * blurred
+    sharpened = np.maximum(sharpened, np.zeros(sharpened.shape))
+    sharpened = np.minimum(sharpened, 255 * np.ones(sharpened.shape))
+    sharpened = sharpened.round().astype(np.uint8)
+    if threshold > 0:
+        low_contrast_mask = np.absolute(img - blurred) < threshold
+        np.copyto(sharpened, img, where=low_contrast_mask)
+    return sharpened
+
 
 def render_animation(args, anim_args, animation_prompts, root):
     # animations use key framed prompts
@@ -186,6 +198,10 @@ def render_animation(args, anim_args, animation_prompts, root):
         noise = keys.noise_schedule_series[frame_idx]
         strength = keys.strength_schedule_series[frame_idx]
         contrast = keys.contrast_schedule_series[frame_idx]
+        kernel = int(keys.kernel_schedule_series[frame_idx])
+        sigma = keys.sigma_schedule_series[frame_idx]
+        amount = keys.amount_schedule_series[frame_idx]
+        threshold = keys.threshold_schedule_series[frame_idx]
         depth = None
         
         # emit in-between frames
@@ -275,6 +291,9 @@ def render_animation(args, anim_args, animation_prompts, root):
 
             # apply scaling
             contrast_sample = prev_img * contrast
+            # apply anti-blur
+            contrast_sample = unsharp_mask(contrast_sample, (kernel, kernel), sigma, amount, threshold)
+
             # apply frame noising
             noised_sample = add_noise(sample_from_cv2(contrast_sample), noise)
 
