@@ -10,7 +10,7 @@
 </p>
 
 ## Before You Start
-- make sure you have the latest nvidia drivers https://developer.nvidia.com/cuda-downloads
+- make sure you have the latest nvidia drivers for cuda 11.6 https://developer.nvidia.com/cuda-toolkit-archive
 - install anaconda for managing python environments and packages https://www.anaconda.com/
 - create a huggingface token which you will need for auto model download: https://huggingface.co/settings/tokens
 - install ffmpeg https://ffmpeg.org/download.html
@@ -32,7 +32,7 @@ cd deforum-stable-diffusion
 ```
 conda create -n dsd python=3.10 -y
 conda activate dsd
-conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia -y
+conda install pytorch torchvision torchaudio pytorch-cuda=11.6 -c pytorch -c nvidia -y
 
 ```
 4. install required packages:

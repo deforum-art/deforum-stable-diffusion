@@ -2,11 +2,11 @@
 
 import torch
 import numpy as np
-#from tqdm.notebook import tqdm
 from tqdm import tqdm
 from functools import partial
 
 from ldm.modules.diffusionmodules.util import make_ddim_sampling_parameters, make_ddim_timesteps, noise_like
+from ldm.models.diffusion.sampling_util import norm_thresholding
 
 
 class PLMSSampler(object):
@@ -78,6 +78,7 @@ class PLMSSampler(object):
                unconditional_guidance_scale=1.,
                unconditional_conditioning=None,
                # this has to come in the same format as the conditioning, # e.g. as encoded tokens, ...
+               dynamic_threshold=None,
                **kwargs
                ):
         if conditioning is not None:
@@ -109,6 +110,7 @@ class PLMSSampler(object):
                                                     log_every_t=log_every_t,
                                                     unconditional_guidance_scale=unconditional_guidance_scale,
                                                     unconditional_conditioning=unconditional_conditioning,
+                                                    dynamic_threshold=dynamic_threshold,
                                                     )
         return samples, intermediates
 
@@ -118,7 +120,8 @@ class PLMSSampler(object):
                       callback=None, timesteps=None, quantize_denoised=False,
                       mask=None, x0=None, img_callback=None, log_every_t=100,
                       temperature=1., noise_dropout=0., score_corrector=None, corrector_kwargs=None,
-                      unconditional_guidance_scale=1., unconditional_conditioning=None,):
+                      unconditional_guidance_scale=1., unconditional_conditioning=None,
+                      dynamic_threshold=None):
         device = self.model.betas.device
         b = shape[0]
         if x_T is None:
@@ -156,13 +159,14 @@ class PLMSSampler(object):
                                       corrector_kwargs=corrector_kwargs,
                                       unconditional_guidance_scale=unconditional_guidance_scale,
                                       unconditional_conditioning=unconditional_conditioning,
-                                      old_eps=old_eps, t_next=ts_next)
+                                      old_eps=old_eps, t_next=ts_next,
+                                      dynamic_threshold=dynamic_threshold)
             img, pred_x0, e_t = outs
             old_eps.append(e_t)
             if len(old_eps) >= 4:
                 old_eps.pop(0)
             if callback: callback(i)
-            if img_callback: img_callback(img, pred_x0, i)
+            if img_callback: img_callback(pred_x0, i)
 
             if index % log_every_t == 0 or index == total_steps - 1:
                 intermediates['x_inter'].append(img)
@@ -173,7 +177,8 @@ class PLMSSampler(object):
     @torch.no_grad()
     def p_sample_plms(self, x, c, t, index, repeat_noise=False, use_original_steps=False, quantize_denoised=False,
                       temperature=1., noise_dropout=0., score_corrector=None, corrector_kwargs=None,
-                      unconditional_guidance_scale=1., unconditional_conditioning=None, old_eps=None, t_next=None):
+                      unconditional_guidance_scale=1., unconditional_conditioning=None, old_eps=None, t_next=None,
+                      dynamic_threshold=None):
         b, *_, device = *x.shape, x.device
 
         def get_model_output(x, t):
@@ -208,6 +213,8 @@ class PLMSSampler(object):
             pred_x0 = (x - sqrt_one_minus_at * e_t) / a_t.sqrt()
             if quantize_denoised:
                 pred_x0, _, *_ = self.model.first_stage_model.quantize(pred_x0)
+            if dynamic_threshold is not None:
+                pred_x0 = norm_thresholding(pred_x0, dynamic_threshold)
             # direction pointing to x_t
             dir_xt = (1. - a_prev - sigma_t**2).sqrt() * e_t
             noise = sigma_t * noise_like(x.shape, device, repeat_noise) * temperature

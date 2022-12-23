@@ -9,6 +9,8 @@
 [Quick Guide](https://docs.google.com/document/d/1RrQv7FntzOuLg4ohjRZPVL7iptIyBhwwbcEYEW2OfcI/edit?usp=sharing) to Deforum v0.6
 
 Notebook by [deforum](https://discord.gg/upmXXsrwZc)
+
+- added v2 base model
 """
 
 # %%
@@ -38,6 +40,7 @@ print(f"{sub_p_res[:-1]}")
 import subprocess, time, gc, os, sys
 
 def setup_environment():
+    start_time = time.time()
     print_subprocess = False
     use_xformers_for_colab = True
     try:
@@ -46,12 +49,12 @@ def setup_environment():
         ipy = 'could not get_ipython'
     if 'google.colab' in str(ipy):
         print("..setting up environment")
-        start_time = time.time()
+        
         all_process = [
             ['pip', 'install', 'torch==1.12.1+cu113', 'torchvision==0.13.1+cu113', '--extra-index-url', 'https://download.pytorch.org/whl/cu113'],
-            ['pip', 'install', 'omegaconf==2.2.3', 'einops==0.4.1', 'pytorch-lightning==1.7.4', 'torchmetrics==0.9.3', 'torchtext==0.13.1', 'transformers==4.21.2', 'kornia==0.6.7'],
-            ['git', 'clone', 'https://github.com/deforum-art/deforum-stable-diffusion'],
-            ['pip', 'install', 'accelerate', 'ftfy', 'jsonmerge', 'matplotlib', 'resize-right', 'timm', 'torchdiffeq','scikit-learn'],
+            ['pip', 'install', 'omegaconf==2.2.3', 'einops==0.4.1', 'pytorch-lightning==1.7.4', 'torchmetrics==0.9.3', 'torchtext==0.13.1', 'transformers==4.21.2', 'safetensors', 'kornia==0.6.7'],
+            ['git', 'clone', '-b', 'dev', 'https://github.com/deforum-art/deforum-stable-diffusion'],
+            ['pip', 'install', 'accelerate', 'ftfy', 'jsonmerge', 'matplotlib', 'resize-right', 'timm', 'torchdiffeq','scikit-learn','torchsde','open_clip_torch'],
         ]
         for process in all_process:
             running = subprocess.run(process,stdout=subprocess.PIPE).stdout.decode('utf-8')
@@ -63,8 +66,6 @@ def setup_environment():
             'deforum-stable-diffusion/',
             'deforum-stable-diffusion/src',
         ])
-        end_time = time.time()
-
         if use_xformers_for_colab:
 
             print("..installing xformers")
@@ -74,7 +75,7 @@ def setup_environment():
                 running = subprocess.run(process,stdout=subprocess.PIPE).stdout.decode('utf-8')
                 if print_subprocess:
                     print(running)
-                    
+
             v_card_name = subprocess.run(['nvidia-smi', '--query-gpu=name', '--format=csv,noheader'], stdout=subprocess.PIPE).stdout.decode('utf-8')
             if 't4' in v_card_name.lower():
                 name_to_download = 'T4'
@@ -84,29 +85,41 @@ def setup_environment():
                 name_to_download = 'A100'
             elif 'p100' in v_card_name.lower():
                 name_to_download = 'P100'
+            elif 'a4000' in v_card_name.lower():
+                name_to_download = 'Non-Colab/Paperspace/A4000'
+            elif 'p5000' in v_card_name.lower():
+                name_to_download = 'Non-Colab/Paperspace/P5000'
+            elif 'quadro m4000' in v_card_name.lower():
+                name_to_download = 'Non-Colab/Paperspace/Quadro M4000'
+            elif 'rtx 4000' in v_card_name.lower():
+                name_to_download = 'Non-Colab/Paperspace/RTX 4000'
+            elif 'rtx 5000' in v_card_name.lower():
+                name_to_download = 'Non-Colab/Paperspace/RTX 5000'
             else:
                 print(v_card_name + ' is currently not supported with xformers flash attention in deforum!')
 
-            x_ver = 'xformers-0.0.13.dev0-py3-none-any.whl'
+            if 'Non-Colab' in name_to_download:
+                x_ver = 'xformers-0.0.14.dev0-cp39-cp39-linux_x86_64.whl'
+            else:
+                x_ver = 'xformers-0.0.13.dev0-py3-none-any.whl'
+
             x_link = 'https://github.com/TheLastBen/fast-stable-diffusion/raw/main/precompiled/' + name_to_download + '/' + x_ver
-        
+
             all_process = [
-                ['wget', x_link],
+                ['wget', '--no-verbose', '--no-clobber', x_link],
                 ['pip', 'install', x_ver],
-                ['mv', 'deforum-stable-diffusion/src/ldm/modules/attention.py', 'deforum-stable-diffusion/src/ldm/modules/attention_backup.py'],
-                ['mv', 'deforum-stable-diffusion/src/ldm/modules/attention_xformers.py', 'deforum-stable-diffusion/src/ldm/modules/attention.py']
             ]
 
             for process in all_process:
                 running = subprocess.run(process,stdout=subprocess.PIPE).stdout.decode('utf-8')
                 if print_subprocess:
                     print(running)
-
-            print(f"Environment set up in {end_time-start_time:.0f} seconds")
     else:
         sys.path.extend([
             'src'
         ])
+    end_time = time.time()
+    print(f"..environment set up in {end_time-start_time:.0f} seconds")
     return
 
 setup_environment()
@@ -133,8 +146,8 @@ def Root():
     output_path_gdrive = "/content/drive/MyDrive/AI/StableDiffusion" #@param {type:"string"}
 
     #@markdown **Model Setup**
-    model_config = "v1-inference.yaml" #@param ["custom","v1-inference.yaml"]
-    model_checkpoint =  "v1-5-pruned-emaonly.ckpt" #@param ["custom","v1-5-pruned.ckpt","v1-5-pruned-emaonly.ckpt","sd-v1-4-full-ema.ckpt","sd-v1-4.ckpt","sd-v1-3-full-ema.ckpt","sd-v1-3.ckpt","sd-v1-2-full-ema.ckpt","sd-v1-2.ckpt","sd-v1-1-full-ema.ckpt","sd-v1-1.ckpt", "robo-diffusion-v1.ckpt","wd-v1-3-float16.ckpt"]
+    model_config = "v1-inference.yaml" #@param ["custom","v2-inference.yaml","v1-inference.yaml"]
+    model_checkpoint =  "v1-5-pruned-emaonly.ckpt" #@param ["custom","512-base-ema.ckpt","v1-5-pruned.ckpt","v1-5-pruned-emaonly.ckpt","sd-v1-4-full-ema.ckpt","sd-v1-4.ckpt","sd-v1-3-full-ema.ckpt","sd-v1-3.ckpt","sd-v1-2-full-ema.ckpt","sd-v1-2.ckpt","sd-v1-1-full-ema.ckpt","sd-v1-1.ckpt", "robo-diffusion-v1.ckpt","wd-v1-3-float16.ckpt"]
     custom_config_path = "" #@param {type:"string"}
     custom_checkpoint_path = "" #@param {type:"string"}
     half_precision = True
@@ -257,7 +270,7 @@ def DeforumArgs():
 
     #@markdown **Sampling Settings**
     seed = -1 #@param
-    sampler = 'dpmpp_2s_a' #@param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim", "dpm_fast", "dpm_adaptive", "dpmpp_2s_a", "dpmpp_2m"]
+    sampler = 'euler_ancestral' #@param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim", "dpm_fast", "dpm_adaptive", "dpmpp_2s_a", "dpmpp_2m"]
     steps = 80 #@param
     scale = 7 #@param
     ddim_eta = 0.0 #@param
@@ -529,7 +542,8 @@ else:
 # !!     }
 # !!   },
 # !!   "colab": {
-# !!     "provenance": []
+# !!     "provenance": [],
+# !!     "machine_shape": "hm"
 # !!   },
 # !!   "accelerator": "GPU",
 # !!   "gpuClass": "standard"
