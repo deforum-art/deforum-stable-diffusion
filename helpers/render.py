@@ -144,6 +144,7 @@ def render_animation(args, anim_args, animation_prompts, root):
 
     # check for video inits
     using_vid_init = anim_args.animation_mode == 'Video Input'
+    args.using_vid_init = using_vid_init
 
     # load depth model for 3D
     predict_depths = (anim_args.animation_mode == '3D' and anim_args.use_depth_warping) or anim_args.save_depth_maps

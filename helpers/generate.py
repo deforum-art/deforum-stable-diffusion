@@ -262,7 +262,7 @@ def generate(args, root, frame = 0, return_latent=False, return_sample=False, re
                         else:
                             raise Exception("Cannot overlay the masked image without an init image to overlay")
 
-                        if args.mask_sample is None:
+                        if args.mask_sample is None or args.using_vid_init:
                             args.mask_sample = prepare_overlay_mask(args, root, img_original.shape)
 
                         x_samples = img_original * args.mask_sample + x_samples * ((args.mask_sample * -1.0) + 1)
