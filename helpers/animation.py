@@ -289,6 +289,10 @@ class DeformAnimKeys():
         self.noise_schedule_series = get_inbetweens(parse_key_frames(anim_args.noise_schedule), anim_args.max_frames)
         self.strength_schedule_series = get_inbetweens(parse_key_frames(anim_args.strength_schedule), anim_args.max_frames)
         self.contrast_schedule_series = get_inbetweens(parse_key_frames(anim_args.contrast_schedule), anim_args.max_frames)
+        self.kernel_schedule_series = get_inbetweens(parse_key_frames(anim_args.kernel_schedule), anim_args.max_frames)
+        self.sigma_schedule_series = get_inbetweens(parse_key_frames(anim_args.sigma_schedule), anim_args.max_frames)
+        self.amount_schedule_series = get_inbetweens(parse_key_frames(anim_args.amount_schedule), anim_args.max_frames)
+        self.threshold_schedule_series = get_inbetweens(parse_key_frames(anim_args.threshold_schedule), anim_args.max_frames)
 
 def get_inbetweens(key_frames, max_frames, integer=False, interp_method='Linear'):
     import numexpr
