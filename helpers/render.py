@@ -561,9 +561,6 @@ def render_animation_hybrid_video_generation(args, anim_args, root):
             # remove old inputframes (preferrable, to get accurate max_frames)
             files = pathlib.Path(video_in_frame_path).glob('*.jpg')
             for f in files: os.remove(f)
-            # delete hybridframes (they will now be generated again anyway)
-            files = pathlib.Path(hybrid_frame_path).glob('*.jpg')
-            for f in files: os.remove(f)
 
         # save the video frames from input video
         print(f"Video to extract: {anim_args.video_init_path}")
@@ -590,7 +587,7 @@ def render_animation_hybrid_video_generation(args, anim_args, root):
 def render_animation_hybrid_composite(args, anim_args, frame_idx, prev_img, depth_model, hybrid_video_comp_schedules):
     video_frame = os.path.join(args.outdir, 'inputframes', f"{frame_idx:05}.jpg")
     video_depth_frame = os.path.join(args.outdir, 'hybridframes', f"vid-depth{frame_idx:05}.jpg")
-    depth_frame = os.path.join(args.outdir, f"{args.timestring}_depth_{frame_idx-1:05}.jpg")
+    depth_frame = os.path.join(args.outdir, f"{args.timestring}_depth_{frame_idx-1:05}.png")
     mask_frame = os.path.join(args.outdir, 'hybridframes', f"mask{frame_idx:05}.jpg")
     comp_frame = os.path.join(args.outdir, 'hybridframes', f"comp{frame_idx:05}.jpg")
     prev_frame = os.path.join(args.outdir, 'hybridframes', f"prev{frame_idx:05}.jpg")
@@ -630,19 +627,19 @@ def render_animation_hybrid_composite(args, anim_args, frame_idx, prev_img, dept
         if anim_args.hybrid_video_comp_mask_auto_contrast:
             hybrid_mask = ImageOps.autocontrast(hybrid_mask, cutoff = (hybrid_video_comp_schedules['mask_auto_contrast_cutoff_low'], hybrid_video_comp_schedules['mask_auto_contrast_cutoff_high']))
         if anim_args.hybrid_video_comp_save_extra_frames:
-            hybrid_mask.save(mask_frame, quality=80)
+            hybrid_mask.save(mask_frame)
         # equalization after
         if anim_args.hybrid_video_comp_mask_equalize in ['After', 'Both']:
             hybrid_mask = ImageOps.equalize(hybrid_mask)        
         # do compositing and save
         hybrid_comp = Image.composite(prev_img_hybrid, video_image, hybrid_mask)            
         if anim_args.hybrid_video_comp_save_extra_frames:
-            hybrid_comp.save(comp_frame, quality=80)
+            hybrid_comp.save(comp_frame)
 
     # final blend of composite with prev_img, or just a blend if no composite is selected
     hybrid_blend = Image.blend(prev_img_hybrid, hybrid_comp, hybrid_video_comp_schedules['alpha'])  
     if anim_args.hybrid_video_comp_save_extra_frames:
-        hybrid_blend.save(prev_frame, quality=80)
+        hybrid_blend.save(prev_frame)
     prev_img = hybrid_blend
 
     # restore to np array and return
@@ -770,7 +767,7 @@ def get_flow_for_hybrid_motion(frame_idx, dimensions, inputfiles, hybrid_frame_p
         flow_cv2 = cv2.cvtColor(flow_cv2,cv2.COLOR_BGR2RGB)
         flow_cv2 = draw_flow_lines_in_grid_in_color(flow_cv2, flow)
         flow_PIL = Image.fromarray(np.uint8(flow_cv2))
-        flow_PIL.save(flow_img_file, quality=80)
+        flow_PIL.save(flow_img_file)
         print(f"Saved optical flow visualization: {flow_img_file}")
     return flow
 
