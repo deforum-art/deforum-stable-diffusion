@@ -20,7 +20,23 @@ from .load_images import prepare_overlay_mask
 
 def next_seed(args):
     if args.seed_behavior == 'iter':
-        args.seed += 1
+        if args.seed_internal % args.seed_iter_N == 0:
+            args.seed += 1
+        args.seed_internal += 1
+    elif args.seed_behavior == 'ladder':
+        if args.seed_internal == 0:
+            args.seed += 2
+            args.seed_internal = 1
+        else:
+            args.seed -= 1
+            args.seed_internal = 0
+    elif args.seed_behavior == 'alternate':
+        if args.seed_internal == 0:
+            args.seed += 1
+            args.seed_internal = 1
+        else:
+            args.seed -= 1
+            args.seed_internal = 0
     elif args.seed_behavior == 'fixed':
         pass # always keep seed the same
     else:

@@ -319,7 +319,8 @@ def DeforumArgs():
     n_batch = 1 #@param
     batch_name = "StableFun" #@param {type:"string"}
     filename_format = "{timestring}_{index}_{prompt}.png" #@param ["{timestring}_{index}_{seed}.png","{timestring}_{index}_{prompt}.png"]
-    seed_behavior = "iter" #@param ["iter","fixed","random"]
+    seed_behavior = "iter" #@param ["iter","fixed","random","ladder","alternate"]
+    seed_iter_N = 1 #@param {type:'integer'}
     make_grid = False #@param {type:"boolean"}
     grid_rows = 2 #@param 
     outdir = get_output_folder(root.output_path, batch_name)
@@ -392,6 +393,7 @@ def DeforumArgs():
     init_sample_raw = None
     mask_sample = None
     init_c = None
+    seed_internal = 0
 
     return locals()
 
