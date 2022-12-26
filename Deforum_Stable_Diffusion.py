@@ -202,10 +202,10 @@ def DeforumAnimArgs():
     contrast_schedule = "0: (1.0)"#@param {type:"string"}
 
     #@markdown ####**Unsharp mask (anti-blur) Parameters:**
-    kernel_schedule = "0: (5)"
-    sigma_schedule = "0: (1.0)"
-    amount_schedule = "0: (0.2)"
-    threshold_schedule = "0: (0.0)"
+    kernel_schedule = "0: (5)"#@param {type:"string"}
+    sigma_schedule = "0: (1.0)"#@param {type:"string"}
+    amount_schedule = "0: (0.2)"#@param {type:"string"}
+    threshold_schedule = "0: (0.0)"#@param {type:"string"}
 
     #@markdown ####**Coherence:**
     color_coherence = 'Match Frame 0 LAB' #@param ['None', 'Match Frame 0 HSV', 'Match Frame 0 LAB', 'Match Frame 0 RGB'] {type:'string'}
