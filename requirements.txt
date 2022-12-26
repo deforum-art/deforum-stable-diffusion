@@ -29,6 +29,5 @@ devtools
 validators
 open-clip-torch
 torchsde
-triton
 ninja
 git+https://github.com/facebookresearch/xformers.git@main#egg=xformers
