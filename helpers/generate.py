@@ -7,7 +7,7 @@ from pytorch_lightning import seed_everything
 import os
 from ldm.models.diffusion.plms import PLMSSampler
 from ldm.models.diffusion.ddim import DDIMSampler
-from k_diffusion.external import CompVisDenoiser
+from k_diffusion.external import CompVisDenoiser, CompVisDenoiser
 from torch import autocast
 from contextlib import nullcontext
 from einops import rearrange, repeat
@@ -31,7 +31,10 @@ def generate(args, root, frame = 0, return_latent=False, return_sample=False, re
     os.makedirs(args.outdir, exist_ok=True)
 
     sampler = PLMSSampler(root.model) if args.sampler == 'plms' else DDIMSampler(root.model)
-    model_wrap = CompVisDenoiser(root.model)
+    if root.model.parameterization == "v":
+        model_wrap = CompVisVDenoiser(root.model)
+    else:
+        model_wrap = CompVisDenoiser(root.model)
     batch_size = args.n_samples
     prompt = args.prompt
     assert prompt is not None
