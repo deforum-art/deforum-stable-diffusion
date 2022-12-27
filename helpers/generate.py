@@ -7,7 +7,7 @@ from pytorch_lightning import seed_everything
 import os
 from ldm.models.diffusion.plms import PLMSSampler
 from ldm.models.diffusion.ddim import DDIMSampler
-from k_diffusion.external import CompVisDenoiser, CompVisDenoiser
+from k_diffusion.external import CompVisDenoiser, CompVisVDenoiser
 from torch import autocast
 from contextlib import nullcontext
 from einops import rearrange, repeat
