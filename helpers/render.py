@@ -394,6 +394,12 @@ def render_animation(args, anim_args, animation_prompts, root):
                 mask_frame = os.path.join(args.outdir, 'maskframes', f"{frame_idx+1:05}.jpg")
                 args.mask_file = mask_frame
 
+        # reallybigname mod \\\
+        if anim_args.hybrid_video_use_video_as_mse_image:
+            args.init_mse_image = os.path.join(args.outdir, 'inputframes', f"{frame_idx:05}.jpg")
+            print(f"Using {args.init_mse_image} as init_mse_image")
+        # reallybigname mod ///
+
         # sample the diffusion model
         sample, image = generate(args, root, frame_idx, return_latent=False, return_sample=True)
         # First image sample used for masking
@@ -645,7 +651,7 @@ def render_animation_hybrid_composite(args, anim_args, frame_idx, prev_img, dept
     # restore to np array and return
     return args, np.array(prev_img)
 
-def get_default_translation_matrix(hybrid_video_motion):
+def get_hybrid_video_motion_default_matrix(hybrid_video_motion):
     if hybrid_video_motion == "Perspective":
         arr = np.array([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]])
     else:
