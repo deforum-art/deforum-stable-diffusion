@@ -279,7 +279,21 @@ def generate(args, root, frame = 0, return_latent=False, return_sample=False, re
                         results.append(c.clone())
 
                     for x_sample in x_samples:
-                        x_sample = 255. * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
-                        image = Image.fromarray(x_sample.astype(np.uint8))
+                        def uint_number(datum, number):
+                            if number == 8:
+                                datum = Image.fromarray(datum.astype(np.uint8))
+                            elif number == 32:
+                                datum = datum.astype(np.float32)
+                            else:
+                                datum = datum.astype(np.uint16)
+                            return datum
+                        if args.bit_depth_output == 8:
+                            exponent_for_rearrange = 1
+                        elif args.bit_depth_output == 32:
+                            exponent_for_rearrange = 0
+                        else:
+                            exponent_for_rearrange = 2
+                        x_sample = 255.**exponent_for_rearrange * rearrange(x_sample.cpu().numpy(), 'c h w -> h w c')
+                        image = uint_number(x_sample, args.bit_depth_output)
                         results.append(image)
     return results

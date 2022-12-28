@@ -5,6 +5,7 @@ import random
 from torchvision.utils import make_grid
 from einops import rearrange
 import pandas as pd
+os.environ["OPENCV_IO_ENABLE_OPENEXR"]="1"
 import cv2
 import numpy as np
 from PIL import Image
@@ -17,6 +18,29 @@ from .animation import DeformAnimKeys, sample_from_cv2, sample_to_cv2, anim_fram
 from .depth import DepthModel
 from .colors import maintain_colors
 from .load_images import prepare_overlay_mask
+
+from numpngw import write_png
+#import tifffile # Un-comment to save 32bpc TIFF images too. Also un-comment line within 'def save_8_16_or_32bpc_image()'
+
+# This function converts the image to 8bpc (if it isn't already) to display it on browser.
+def convert_image_to_8bpc(image, bit_depth_output): 
+    if bit_depth_output == 16:
+        image = image / 256
+        image = Image.fromarray(image.astype('uint8'))
+    elif bit_depth_output == 32:
+        image = np.clip(image * 256, 0, 255) # Clip values below 0 and above 255 (but those values ARE PRESENT in the EXRs)
+        image = Image.fromarray(image.astype('uint8'))
+    return image
+
+# This function saves the image to file, depending on bitrate. At 8bpc PIL saves png8 images. At 16bpc, numpngw saves png16 images. At 32 bpc, cv2 saves EXR images (and optionally tifffile saves 32bpc tiffs).
+def save_8_16_or_32bpc_image(image, outdir, filename, bit_depth_output): 
+    if bit_depth_output == 8: 
+        image.save(os.path.join(outdir, filename))
+    elif bit_depth_output == 32:
+        #tifffile.imsave(os.path.join(outdir, filename).replace(".png", ".tiff"), image) # Un-comment to save 32bpc TIFF images too. Also un-comment 'import tifffile'
+        cv2.imwrite(os.path.join(outdir, filename).replace(".png", ".exr"), cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
+    else:
+        write_png(os.path.join(outdir, filename), image)
 
 def next_seed(args):
     if args.seed_behavior == 'iter':
@@ -88,8 +112,10 @@ def render_image_batch(args, prompts, root):
                             filename = f"{args.timestring}_{index:05}_{sanitize(prompt)[:160]}.png"
                         else:
                             filename = f"{args.timestring}_{index:05}_{args.seed}.png"
-                        image.save(os.path.join(args.outdir, filename))
+                        save_8_16_or_32bpc_image(image, args.outdir, filename, args.bit_depth_output)
                     if args.display_samples:
+                        if args.bit_depth_output != 8:
+                            image = convert_image_to_8bpc(image, args.bit_depth_output)
                         display.display(image)
                     index += 1
                 args.seed = next_seed(args)
@@ -236,7 +262,7 @@ def render_animation(args, anim_args, animation_prompts, root):
                 filename = f"{args.timestring}_{tween_frame_idx:05}.png"
                 cv2.imwrite(os.path.join(args.outdir, filename), cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_RGB2BGR))
                 if anim_args.save_depth_maps:
-                    depth_model.save(os.path.join(args.outdir, f"{args.timestring}_depth_{tween_frame_idx:05}.png"), depth)
+                    depth_model.save(os.path.join(args.outdir, f"{args.timestring}_depth_{tween_frame_idx:05}.png"), depth, args.bit_depth_output)
             if turbo_next_image is not None:
                 prev_sample = sample_from_cv2(turbo_next_image)
 
@@ -319,11 +345,16 @@ def render_animation(args, anim_args, animation_prompts, root):
             frame_idx += turbo_steps
         else:    
             filename = f"{args.timestring}_{frame_idx:05}.png"
-            image.save(os.path.join(args.outdir, filename))
+            # Save image to 8bpc or 16bpc
+            save_8_16_or_32bpc_image(image, args.outdir, filename, args.bit_depth_output)
             if anim_args.save_depth_maps:
                 depth = depth_model.predict(sample_to_cv2(sample), anim_args)
-                depth_model.save(os.path.join(args.outdir, f"{args.timestring}_depth_{frame_idx:05}.png"), depth)
+                depth_model.save(os.path.join(args.outdir, f"{args.timestring}_depth_{frame_idx:05}.png"), depth, args.bit_depth_output)
             frame_idx += 1
+
+        # Convert image to 8bpc to display
+        if args.bit_depth_output != 8: 
+            image = convert_image_to_8bpc(image, args.bit_depth_output) 
 
         display.clear_output(wait=True)
         display.display(image)
@@ -387,6 +418,10 @@ def render_interpolation(args, anim_args, animation_prompts, root):
         c, image = results[0], results[1]
         prompts_c_s.append(c) 
       
+        # Convert image to 8bpc to display
+        if args.bit_depth_output != 8: 
+            image = convert_image_to_8bpc(image, args.bit_depth_output) 
+      
         # display.clear_output(wait=True)
         display.display(image)
       
@@ -415,8 +450,13 @@ def render_interpolation(args, anim_args, animation_prompts, root):
                 image = results[0]
 
                 filename = f"{args.timestring}_{frame_idx:05}.png"
-                image.save(os.path.join(args.outdir, filename))
+                # Save image to 8bpc or 16bpc
+                save_8_16_or_32bpc_image(image, args.outdir, filename, args.bit_depth_output)
                 frame_idx += 1
+
+                # Convert image to 8bpc to display
+                if args.bit_depth_output != 8: 
+                    image = convert_image_to_8bpc(image, args.bit_depth_output) 
 
                 display.clear_output(wait=True)
                 display.display(image)
@@ -436,8 +476,12 @@ def render_interpolation(args, anim_args, animation_prompts, root):
                 image = results[0]
 
                 filename = f"{args.timestring}_{frame_idx:05}.png"
-                image.save(os.path.join(args.outdir, filename))
+                save_8_16_or_32bpc_image(image, args.outdir, filename, args.bit_depth_output)
                 frame_idx += 1
+
+                # Convert image to 8bpc to display
+                if args.bit_depth_output != 8: 
+                    image = convert_image_to_8bpc(image, args.bit_depth_output) 
 
                 display.clear_output(wait=True)
                 display.display(image)
@@ -449,7 +493,11 @@ def render_interpolation(args, anim_args, animation_prompts, root):
     results = generate(args, root)
     image = results[0]
     filename = f"{args.timestring}_{frame_idx:05}.png"
-    image.save(os.path.join(args.outdir, filename))
+    save_8_16_or_32bpc_image(image, args.outdir, filename, args.bit_depth_output)
+
+    # Convert image to 8bpc to display
+    if args.bit_depth_output != 8: 
+        image = convert_image_to_8bpc(image, args.bit_depth_output) 
 
     display.clear_output(wait=True)
     display.display(image)

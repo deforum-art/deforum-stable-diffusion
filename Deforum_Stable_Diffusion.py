@@ -267,6 +267,7 @@ def DeforumArgs():
     W = 512 #@param
     H = 512 #@param
     W, H = map(lambda x: x - x % 64, (W, H))  # resize to integer multiple of 64
+    bit_depth_output = 8 #@param [8, 16, 32] {type:"number"}
 
     #@markdown **Sampling Settings**
     seed = -1 #@param
@@ -438,6 +439,7 @@ mp4_path = "/content/drive/MyDrive/AI/StableDiffusion/2022-09/20220903000939.mp4
 render_steps = False  #@param {type: 'boolean'}
 path_name_modifier = "x0_pred" #@param ["x0_pred","x"]
 make_gif = False
+bitdepth_extension = "exr" if args.bit_depth_output == 32 else "png"
 
 if skip_video_for_run_all == True:
     print('Skipping video creation, uncheck skip_video_for_run_all if you want to run it')
@@ -460,7 +462,7 @@ else:
             mp4_path = os.path.join(newest_dir, f"{args.timestring}_{path_name_modifier}.mp4")
             max_frames = str(args.steps)
         else: # render images for a video
-            image_path = os.path.join(args.outdir, f"{args.timestring}_%05d.png")
+            image_path = os.path.join(args.outdir, f"{args.timestring}_%05d.{bitdepth_extension}")
             mp4_path = os.path.join(args.outdir, f"{args.timestring}.mp4")
             max_frames = str(anim_args.max_frames)
 
@@ -468,7 +470,7 @@ else:
     cmd = [
         'ffmpeg',
         '-y',
-        '-vcodec', 'png',
+        '-vcodec', bitdepth_extension,
         '-r', str(fps),
         '-start_number', str(0),
         '-i', image_path,
