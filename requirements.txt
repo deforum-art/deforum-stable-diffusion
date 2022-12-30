@@ -27,6 +27,7 @@ albumentations
 more_itertools
 devtools
 validators
+numpngw
 open-clip-torch
 torchsde
 ninja

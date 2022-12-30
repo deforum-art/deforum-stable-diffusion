@@ -14,6 +14,7 @@ from infer import InferenceHelper
 from midas.dpt_depth import DPTDepthModel
 from midas.transforms import Resize, NormalizeImage, PrepareForNet
 
+from numpngw import write_png
 
 def wget(url, outputdir):
     filename = url.split("/")[-1]
@@ -161,7 +162,7 @@ class DepthModel():
         
         return depth_tensor
 
-    def save(self, filename: str, depth: torch.Tensor):
+    def save(self, filename: str, depth: torch.Tensor, bit_depth_output):
         depth = depth.cpu().numpy()
         if len(depth.shape) == 2:
             depth = np.expand_dims(depth, axis=0)
@@ -169,7 +170,18 @@ class DepthModel():
         self.depth_max = max(self.depth_max, depth.max())
         print(f"  depth min:{depth.min()} max:{depth.max()}")
         denom = max(1e-8, self.depth_max - self.depth_min)
-        temp = rearrange((depth - self.depth_min) / denom * 255, 'c h w -> h w c')
-        temp = repeat(temp, 'h w 1 -> h w c', c=3)
-        Image.fromarray(temp.astype(np.uint8)).save(filename)    
+        denom_bitdepth_multiplier = {
+            8: 255,
+            16: 255 * 255,
+            32: 1 # This one is 1 because 32bpc is float32 and isn't converted to uint, like 8bpc and 16bpc are
+        }
+        temp_image = rearrange((depth - self.depth_min) / denom * denom_bitdepth_multiplier[bit_depth_output], 'c h w -> h w c')
+        temp_image = repeat(temp_image, 'h w 1 -> h w c', c=3)
+        if bit_depth_output == 16:
+            write_png(filename, temp_image.astype(np.uint16));
+        elif bit_depth_output == 32:
+            os.environ["OPENCV_IO_ENABLE_OPENEXR"]="1"
+            cv2.imwrite(filename.replace(".png", ".exr"), temp_image)
+        else: # 8 bit
+            Image.fromarray(temp_image.astype(np.uint8)).save(filename)
 
