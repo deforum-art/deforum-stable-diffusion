@@ -7,7 +7,7 @@ from pytorch_lightning import seed_everything
 import os
 from ldm.models.diffusion.plms import PLMSSampler
 from ldm.models.diffusion.ddim import DDIMSampler
-from k_diffusion.external import CompVisDenoiser
+from k_diffusion.external import CompVisDenoiser, CompVisVDenoiser
 from torch import autocast
 from contextlib import nullcontext
 from einops import rearrange, repeat
@@ -31,7 +31,10 @@ def generate(args, root, frame = 0, return_latent=False, return_sample=False, re
     os.makedirs(args.outdir, exist_ok=True)
 
     sampler = PLMSSampler(root.model) if args.sampler == 'plms' else DDIMSampler(root.model)
-    model_wrap = CompVisDenoiser(root.model)
+    if root.model.parameterization == "v":
+        model_wrap = CompVisVDenoiser(root.model)
+    else:
+        model_wrap = CompVisDenoiser(root.model)
     batch_size = args.n_samples
     prompt = args.prompt
     assert prompt is not None
@@ -102,7 +105,7 @@ def generate(args, root, frame = 0, return_latent=False, return_sample=False, re
     k_sigmas = k_sigmas[len(k_sigmas)-t_enc-1:]
 
     if args.sampler in ['plms','ddim']:
-        sampler.make_schedule(ddim_num_steps=args.steps, ddim_eta=args.ddim_eta, ddim_discretize='fill', verbose=False)
+        sampler.make_schedule(ddim_num_steps=args.steps, ddim_eta=args.ddim_eta, ddim_discretize='uniform', verbose=False)
 
     if args.colormatch_scale != 0:
         assert args.colormatch_image is not None, "If using color match loss, colormatch_image is needed"
@@ -262,7 +265,7 @@ def generate(args, root, frame = 0, return_latent=False, return_sample=False, re
                         else:
                             raise Exception("Cannot overlay the masked image without an init image to overlay")
 
-                        if args.mask_sample is None:
+                        if args.mask_sample is None or args.using_vid_init:
                             args.mask_sample = prepare_overlay_mask(args, root, img_original.shape)
 
                         x_samples = img_original * args.mask_sample + x_samples * ((args.mask_sample * -1.0) + 1)

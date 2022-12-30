@@ -47,31 +47,6 @@ python Deforum_Stable_Diffusion.py
 ```
 you have successfully installed deforum stable diffusion if the python file runs without any errors.
 
-
-## Installing Xformers
-xformers can be installed from source with the following commands
-```
-git clone https://github.com/facebookresearch/xformers.git
-cd xformers
-conda activate dsd
-git submodule update --init --recursive
-pip install -r requirements.txt
-pip install -e .
-
-```
-xformers can be enabled by switching the attention.py
-```
-mv src/ldm/modules/attention.py src/ldm/modules/attention_backup.py
-mv src/ldm/modules/attention_xformers.py src/ldm/modules/attention.py
-
-```
-to turn off xformers run the following:
-```
-mv src/ldm/modules/attention.py src/ldm/modules/attention_xformers.py 
-mv src/ldm/modules/attention_backup.py src/ldm/modules/attention.py
-
-```
-
 ## Starting Over
 the stable-diffusion folder can be deleted and the dsd conda environment can be removed with the following set of commands:
 ```

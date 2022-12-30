@@ -174,11 +174,12 @@ def render_animation(args, anim_args, animation_prompts, root):
     # expand prompts out to per-frame
     prompt_series = pd.Series([np.nan for a in range(anim_args.max_frames)])
     for i, prompt in animation_prompts.items():
-        prompt_series[i] = prompt
+        prompt_series[int(i)] = prompt
     prompt_series = prompt_series.ffill().bfill()
 
     # check for video inits
     using_vid_init = anim_args.animation_mode == 'Video Input'
+    args.using_vid_init = using_vid_init
 
     # load depth model for 3D (or depth compositing)
     predict_depths = (anim_args.animation_mode == '3D' and anim_args.use_depth_warping) or anim_args.save_depth_maps
@@ -203,7 +204,7 @@ def render_animation(args, anim_args, animation_prompts, root):
     # resume animation
     prev_sample = None
     color_match_sample = None
-    if anim_args.resume_from_timestring:
+    if anim_args.resume_from_timestring and not using_vid_init:
         last_frame = start_frame-1
         if turbo_steps > 1:
             last_frame -= last_frame%turbo_steps

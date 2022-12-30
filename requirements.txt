@@ -22,7 +22,12 @@ scikit-learn
 timm
 torchdiffeq
 transformers==4.19.2
+safetensors
 albumentations
 more_itertools
 devtools
 validators
+open-clip-torch
+torchsde
+ninja
+git+https://github.com/facebookresearch/xformers.git@main#egg=xformers
