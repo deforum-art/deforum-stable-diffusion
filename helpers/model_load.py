@@ -44,6 +44,21 @@ def load_model(root, load_on_run_all=True, check_sha256=True):
         path_extend = ""
 
     model_map = {
+        "v2-1_768-ema-pruned.ckpt": {
+            'sha256': 'ad2a33c361c1f593c4a1fb32ea81afce2b5bb7d1983c6b94793a26a3b54b08a0',
+            'url': 'https://huggingface.co/stabilityai/stable-diffusion-2-1/resolve/main/v2-1_768-ema-pruned.ckpt',
+            'requires_login': True,
+            },
+        "v2-1_512-ema-pruned.ckpt": {
+            'sha256': '88ecb782561455673c4b78d05093494b9c539fc6bfc08f3a9a4a0dd7b0b10f36',
+            'url': 'https://huggingface.co/stabilityai/stable-diffusion-2-1-base/resolve/main/v2-1_512-ema-pruned.ckpt',
+            'requires_login': True,
+            },
+        "768-v-ema.ckpt": {
+            'sha256': 'bfcaf0755797b0c30eb00a3787e8b423eb1f5decd8de76c4d824ac2dd27e139f',
+            'url': 'https://huggingface.co/stabilityai/stable-diffusion-2/resolve/main/768-v-ema.ckpt',
+            'requires_login': True,
+            },
         "512-base-ema.ckpt": {
             'sha256': 'd635794c1fedfdfa261e065370bea59c651fc9bfa65dc6d67ad29e11869a1824',
             'url': 'https://huggingface.co/stabilityai/stable-diffusion-2-base/resolve/main/512-base-ema.ckpt',
