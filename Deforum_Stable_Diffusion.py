@@ -242,7 +242,7 @@ def DeforumAnimArgs():
     hybrid_video_comp_mask_equalize = "None" #@param  ['None','Before','After','Both']
     hybrid_video_comp_mask_auto_contrast = False #@param {type:"boolean"}
     hybrid_video_comp_save_extra_frames = False #@param {type:"boolean"}
-    hybrid_video_use_video_as_mse_image = False #@param {type:"boolean"} 
+    hybrid_video_use_video_as_mse_image = False #@param {type:"boolean"}
 
     #@markdown ####**Interpolation:**
     interpolate_key_frames = False #@param {type:"boolean"}
@@ -289,7 +289,7 @@ def DeforumArgs():
     W = 512 #@param
     H = 512 #@param
     W, H = map(lambda x: x - x % 64, (W, H))  # resize to integer multiple of 64
-    bit_depth_output = 32 #@param [8, 16, 32]
+    bit_depth_output = "8" #@param [8, 16, 32]
 
     #@markdown **Sampling Settings**
     seed = -1 #@param
