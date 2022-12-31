@@ -19,7 +19,15 @@ from .depth import DepthModel
 from .colors import maintain_colors
 from .load_images import prepare_overlay_mask
 
-from numpngw import write_png
+try:
+    from numpngw import write_png
+except ModuleNotFoundError:
+    print(ModuleNotFoundError)
+    import subprocess
+    running = subprocess.run(['pip', 'install', 'numpngw'],stdout=subprocess.PIPE).stdout.decode('utf-8')
+    print(running)
+    from numpngw import write_png
+
 #import tifffile # Un-comment to save 32bpc TIFF images too. Also un-comment line within 'def save_8_16_or_32bpc_image()'
 
 # This function converts the image to 8bpc (if it isn't already) to display it on browser.
@@ -654,7 +662,7 @@ def render_animation_hybrid_composite(args, anim_args, frame_idx, prev_img, dept
         hybrid_mask = Image.open(depth_frame)
     elif anim_args.hybrid_video_comp_mask_type == 'Video Depth': # get video depth
         video_depth = depth_model.predict(np.array(video_image), anim_args)
-        depth_model.save(video_depth_frame, video_depth)
+        depth_model.save(video_depth_frame, video_depth, args.bit_depth_output)
         hybrid_mask = Image.open(video_depth_frame)
     elif anim_args.hybrid_video_comp_mask_type == 'Blend': # create blend mask image
         hybrid_mask = Image.blend(ImageOps.grayscale(prev_img_hybrid), ImageOps.grayscale(video_image), hybrid_video_comp_schedules['mask_blend_alpha'])

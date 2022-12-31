@@ -142,9 +142,8 @@ def Root():
     output_path_gdrive = "/content/drive/MyDrive/AI/StableDiffusion" #@param {type:"string"}
 
     #@markdown **Model Setup**
-    #@markdown Select v2-inference-v.yaml for the 768 models
-    model_config = "v1-inference.yaml" #@param ["custom","v2-inference.yaml","v2-inference-v.yaml","v1-inference.yaml"]
-    model_checkpoint =  "v1-5-pruned-emaonly.ckpt" #@param ["custom","v2-1_768-ema-pruned.ckpt","v2-1_512-ema-pruned.ckpt","768-v-ema.ckpt","512-base-ema.ckpt","v1-5-pruned.ckpt","v1-5-pruned-emaonly.ckpt","sd-v1-4-full-ema.ckpt","sd-v1-4.ckpt","sd-v1-3-full-ema.ckpt","sd-v1-3.ckpt","sd-v1-2-full-ema.ckpt","sd-v1-2.ckpt","sd-v1-1-full-ema.ckpt","sd-v1-1.ckpt", "robo-diffusion-v1.ckpt","wd-v1-3-float16.ckpt"]
+    model_config = "v2-inference.yaml" #@param ["custom","v2-inference.yaml","v2-inference-v.yaml","v1-inference.yaml"]
+    model_checkpoint =  "v2-1_512-ema-pruned.ckpt" #@param ["custom","v2-1_768-ema-pruned.ckpt","v2-1_512-ema-pruned.ckpt","768-v-ema.ckpt","512-base-ema.ckpt","v1-5-pruned.ckpt","v1-5-pruned-emaonly.ckpt","sd-v1-4-full-ema.ckpt","sd-v1-4.ckpt","sd-v1-3-full-ema.ckpt","sd-v1-3.ckpt","sd-v1-2-full-ema.ckpt","sd-v1-2.ckpt","sd-v1-1-full-ema.ckpt","sd-v1-1.ckpt", "robo-diffusion-v1.ckpt","wd-v1-3-float16.ckpt"]
     custom_config_path = "" #@param {type:"string"}
     custom_checkpoint_path = "" #@param {type:"string"}
     half_precision = True
@@ -289,11 +288,11 @@ def DeforumArgs():
     W = 512 #@param
     H = 512 #@param
     W, H = map(lambda x: x - x % 64, (W, H))  # resize to integer multiple of 64
-    bit_depth_output = "8" #@param [8, 16, 32]
+    bit_depth_output = 8 #@param [8, 16, 32] {type:"raw"}
 
     #@markdown **Sampling Settings**
     seed = -1 #@param
-    sampler = 'euler_ancestral' #@param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim", "dpm_fast", "dpm_adaptive", "dpmpp_2s_a", "dpmpp_2m"]
+    sampler = 'dpmpp_2s_a' #@param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim", "dpm_fast", "dpm_adaptive", "dpmpp_2s_a", "dpmpp_2m"]
     steps = 80 #@param
     scale = 7 #@param
     ddim_eta = 0.0 #@param
@@ -323,8 +322,8 @@ def DeforumArgs():
     outdir = get_output_folder(root.output_path, batch_name)
 
     #@markdown **Init Settings**
-    use_init = False #@param {type:"boolean"}
-    strength = 0.0 #@param {type:"number"}
+    use_init = True #@param {type:"boolean"}
+    strength = 0.1 #@param {type:"number"}
     strength_0_no_init = True # Set the strength to 0 automatically when no init image is used
     init_image = "https://cdn.pixabay.com/photo/2022/07/30/13/10/green-longhorn-beetle-7353749_1280.jpg" #@param {type:"string"}
     # Whiter areas of the mask are areas that change more
@@ -544,6 +543,12 @@ else:
 
 # %%
 # !! {"main_metadata":{
+# !!   "accelerator": "GPU",
+# !!   "colab": {
+# !!     "machine_shape": "hm",
+# !!     "provenance": []
+# !!   },
+# !!   "gpuClass": "standard",
 # !!   "kernelspec": {
 # !!     "display_name": "Python 3.10.6 ('dsd')",
 # !!     "language": "python",
@@ -559,18 +564,12 @@ else:
 # !!     "name": "python",
 # !!     "nbconvert_exporter": "python",
 # !!     "pygments_lexer": "ipython3",
-# !!     "version": "3.10.6"
+# !!     "version": "3.10.8"
 # !!   },
 # !!   "orig_nbformat": 4,
 # !!   "vscode": {
 # !!     "interpreter": {
 # !!       "hash": "b7e04c8a9537645cbc77fa0cbde8069bc94e341b0d5ced104651213865b24e58"
 # !!     }
-# !!   },
-# !!   "colab": {
-# !!     "provenance": [],
-# !!     "machine_shape": "hm"
-# !!   },
-# !!   "accelerator": "GPU",
-# !!   "gpuClass": "standard"
+# !!   }
 # !! }}
