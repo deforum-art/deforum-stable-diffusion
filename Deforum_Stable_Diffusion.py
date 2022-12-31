@@ -55,7 +55,6 @@ def setup_environment():
             ['pip', 'install', 'omegaconf==2.2.3', 'einops==0.4.1', 'pytorch-lightning==1.7.4', 'torchmetrics==0.9.3', 'torchtext==0.13.1', 'transformers==4.21.2', 'safetensors', 'kornia==0.6.7'],
             ['git', 'clone', '-b', 'dev', 'https://github.com/deforum-art/deforum-stable-diffusion'],
             ['pip', 'install', 'accelerate', 'ftfy', 'jsonmerge', 'matplotlib', 'resize-right', 'timm', 'torchdiffeq','scikit-learn','torchsde','open_clip_torch'],
-            ['pip', 'install', '-e', 'git+https://github.com/python-pillow/Pillow.git@main#egg=Pillow'],
         ]
         for process in all_process:
             running = subprocess.run(process,stdout=subprocess.PIPE).stdout.decode('utf-8')
@@ -67,7 +66,6 @@ def setup_environment():
             'deforum-stable-diffusion/',
             'deforum-stable-diffusion/src',
         ])
-        from src.pillow.src import PIL
         if use_xformers_for_colab:
 
             print("..installing xformers")

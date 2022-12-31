@@ -632,7 +632,9 @@ def render_animation_hybrid_composite(args, anim_args, frame_idx, prev_img, dept
         hybrid_mask = ImageEnhance.Contrast(hybrid_mask).enhance(hybrid_video_comp_schedules['mask_contrast'])
         # auto contrast with cutoffs lo/hi
         if anim_args.hybrid_video_comp_mask_auto_contrast:
-            hybrid_mask = ImageOps.autocontrast(hybrid_mask, cutoff = (hybrid_video_comp_schedules['mask_auto_contrast_cutoff_low'], hybrid_video_comp_schedules['mask_auto_contrast_cutoff_high']))
+            hybrid_mask = autocontrast_grayscale(np.array(hybrid_mask), hybrid_video_comp_schedules['mask_auto_contrast_cutoff_low'], hybrid_video_comp_schedules['mask_auto_contrast_cutoff_high'])
+            hybrid_mask = Image.fromarray(hybrid_mask)
+            hybrid_mask = ImageOps.grayscale(hybrid_mask)   
         if anim_args.hybrid_video_comp_save_extra_frames:
             hybrid_mask.save(mask_frame)
         # equalization after
@@ -807,3 +809,17 @@ def draw_flow_lines_in_grid_in_color(img, flow, step=8, magnitude_multiplier=1, 
             cv2.arrowedLine(vis, (x1, y1), (x2, y2), color, thickness=1, tipLength=0.2)    
 
     return vis
+
+def autocontrast_grayscale(image, low_cutoff=0, high_cutoff=100):
+    # Perform autocontrast on a grayscale np array image.
+    # Find the minimum and maximum values in the image
+    min_val = np.percentile(image, low_cutoff)
+    max_val = np.percentile(image, high_cutoff)
+
+    # Scale the image so that the minimum value is 0 and the maximum value is 255
+    image = 255 * (image - min_val) / (max_val - min_val)
+
+    # Clip values that fall outside the range [0, 255]
+    image = np.clip(image, 0, 255)
+
+    return image
