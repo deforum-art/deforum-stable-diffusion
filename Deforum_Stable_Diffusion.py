@@ -245,6 +245,7 @@ def DeforumAnimArgs():
     hybrid_video_comp_mask_equalize = "None" #@param  ['None','Before','After','Both']
     hybrid_video_comp_mask_auto_contrast = False #@param {type:"boolean"}
     hybrid_video_comp_save_extra_frames = False #@param {type:"boolean"}
+    hybrid_video_use_video_as_mse_image = False #@param {type:"boolean"} 
 
     #@markdown ####**Interpolation:**
     interpolate_key_frames = False #@param {type:"boolean"}
