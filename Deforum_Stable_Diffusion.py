@@ -3,14 +3,10 @@
 # !!   "id": "ByGXyiHZWM_q"
 # !! }}
 """
-# **Deforum Stable Diffusion v0.6**
-[Stable Diffusion](https://github.com/CompVis/stable-diffusion) by Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, Björn Ommer and the [Stability.ai](https://stability.ai/) Team. [K Diffusion](https://github.com/crowsonkb/k-diffusion) by [Katherine Crowson](https://twitter.com/RiversHaveWings).
+# **Deforum Stable Diffusion v0.7**
+[Stable Diffusion](https://github.com/CompVis/stable-diffusion) by Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, Björn Ommer and the [Stability.ai](https://stability.ai/) Team. [K Diffusion](https://github.com/crowsonkb/k-diffusion) by [Katherine Crowson](https://twitter.com/RiversHaveWings). Notebook by [deforum](https://discord.gg/upmXXsrwZc)
 
 [Quick Guide](https://docs.google.com/document/d/1RrQv7FntzOuLg4ohjRZPVL7iptIyBhwwbcEYEW2OfcI/edit?usp=sharing) to Deforum v0.6
-
-Notebook by [deforum](https://discord.gg/upmXXsrwZc)
-
-- added v2 base model
 """
 
 # %%
@@ -54,7 +50,7 @@ def setup_environment():
             ['pip', 'install', 'torch==1.12.1+cu113', 'torchvision==0.13.1+cu113', '--extra-index-url', 'https://download.pytorch.org/whl/cu113'],
             ['pip', 'install', 'omegaconf==2.2.3', 'einops==0.4.1', 'pytorch-lightning==1.7.4', 'torchmetrics==0.9.3', 'torchtext==0.13.1', 'transformers==4.21.2', 'safetensors', 'kornia==0.6.7'],
             ['git', 'clone', '-b', 'dev', 'https://github.com/deforum-art/deforum-stable-diffusion'],
-            ['pip', 'install', 'accelerate', 'ftfy', 'jsonmerge', 'matplotlib', 'resize-right', 'timm', 'torchdiffeq','scikit-learn','torchsde','open_clip_torch'],
+            ['pip', 'install', 'accelerate', 'ftfy', 'jsonmerge', 'matplotlib', 'resize-right', 'timm', 'torchdiffeq','scikit-learn','torchsde','open-clip-torch','numpngw'],
         ]
         for process in all_process:
             running = subprocess.run(process,stdout=subprocess.PIPE).stdout.decode('utf-8')
@@ -238,7 +234,7 @@ def DeforumAnimArgs():
     #@markdown ####**Hybrid Video for 2D/3D Animation Mode:**
     hybrid_video_generate_inputframes = False #@param {type:"boolean"}
     hybrid_video_use_first_frame_as_init_image = True #@param {type:"boolean"}
-    hybrid_video_motion = "None" #@param ['None','Optical Flow','Perspective','Affine'}
+    hybrid_video_motion = "None" #@param ['None','Optical Flow','Perspective','Affine']
     hybrid_video_flow_method = "Farneback" #@param ['Farneback','DenseRLOF','SF']
     hybrid_video_composite = False #@param {type:"boolean"}
     hybrid_video_comp_mask_type = "None" #@param ['None', 'Depth', 'Video Depth', 'Blend', 'Difference']
@@ -292,7 +288,7 @@ def DeforumArgs():
     W = 512 #@param
     H = 512 #@param
     W, H = map(lambda x: x - x % 64, (W, H))  # resize to integer multiple of 64
-    bit_depth_output = 8 #@param [8, 16, 32] {type:"number"}
+    bit_depth_output = 32 #@param [8, 16, 32]
 
     #@markdown **Sampling Settings**
     seed = -1 #@param
