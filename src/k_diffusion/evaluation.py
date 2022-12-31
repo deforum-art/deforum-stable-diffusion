@@ -9,7 +9,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from torchvision import transforms
-from tqdm.auto import trange
+from tqdm import trange
 
 from . import utils
 
