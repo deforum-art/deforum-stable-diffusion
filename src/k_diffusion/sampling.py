@@ -5,7 +5,7 @@ import torch
 from torch import nn
 from torchdiffeq import odeint
 import torchsde
-from tqdm.auto import trange, tqdm
+from tqdm import trange, tqdm
 
 from . import utils
 

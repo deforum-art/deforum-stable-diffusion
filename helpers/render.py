@@ -19,7 +19,15 @@ from .depth import DepthModel
 from .colors import maintain_colors
 from .load_images import prepare_overlay_mask
 
-from numpngw import write_png
+try:
+    from numpngw import write_png
+except ModuleNotFoundError:
+    print(ModuleNotFoundError)
+    import subprocess
+    running = subprocess.run(['pip', 'install', 'numpngw'],stdout=subprocess.PIPE).stdout.decode('utf-8')
+    print(running)
+    from numpngw import write_png
+
 #import tifffile # Un-comment to save 32bpc TIFF images too. Also un-comment line within 'def save_8_16_or_32bpc_image()'
 
 # This function converts the image to 8bpc (if it isn't already) to display it on browser.
