@@ -5,9 +5,10 @@ import random
 from torchvision.utils import make_grid
 from einops import rearrange
 import pandas as pd
+os.environ["OPENCV_IO_ENABLE_OPENEXR"]="1"
 import cv2
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageChops, ImageOps, ImageEnhance
 import pathlib
 import torchvision.transforms as T
 
@@ -18,9 +19,48 @@ from .depth import DepthModel
 from .colors import maintain_colors
 from .load_images import prepare_overlay_mask
 
+from numpngw import write_png
+#import tifffile # Un-comment to save 32bpc TIFF images too. Also un-comment line within 'def save_8_16_or_32bpc_image()'
+
+# This function converts the image to 8bpc (if it isn't already) to display it on browser.
+def convert_image_to_8bpc(image, bit_depth_output): 
+    if bit_depth_output == 16:
+        image = image / 256
+        image = Image.fromarray(image.astype('uint8'))
+    elif bit_depth_output == 32:
+        image = np.clip(image * 256, 0, 255) # Clip values below 0 and above 255 (but those values ARE PRESENT in the EXRs)
+        image = Image.fromarray(image.astype('uint8'))
+    return image
+
+# This function saves the image to file, depending on bitrate. At 8bpc PIL saves png8 images. At 16bpc, numpngw saves png16 images. At 32 bpc, cv2 saves EXR images (and optionally tifffile saves 32bpc tiffs).
+def save_8_16_or_32bpc_image(image, outdir, filename, bit_depth_output): 
+    if bit_depth_output == 8: 
+        image.save(os.path.join(outdir, filename))
+    elif bit_depth_output == 32:
+        #tifffile.imsave(os.path.join(outdir, filename).replace(".png", ".tiff"), image) # Un-comment to save 32bpc TIFF images too. Also un-comment 'import tifffile'
+        cv2.imwrite(os.path.join(outdir, filename).replace(".png", ".exr"), cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
+    else:
+        write_png(os.path.join(outdir, filename), image)
+
 def next_seed(args):
     if args.seed_behavior == 'iter':
-        args.seed += 1
+        if args.seed_internal % args.seed_iter_N == 0:
+            args.seed += 1
+        args.seed_internal += 1
+    elif args.seed_behavior == 'ladder':
+        if args.seed_internal == 0:
+            args.seed += 2
+            args.seed_internal = 1
+        else:
+            args.seed -= 1
+            args.seed_internal = 0
+    elif args.seed_behavior == 'alternate':
+        if args.seed_internal == 0:
+            args.seed += 1
+            args.seed_internal = 1
+        else:
+            args.seed -= 1
+            args.seed_internal = 0
     elif args.seed_behavior == 'fixed':
         pass # always keep seed the same
     else:
@@ -88,8 +128,10 @@ def render_image_batch(args, prompts, root):
                             filename = f"{args.timestring}_{index:05}_{sanitize(prompt)[:160]}.png"
                         else:
                             filename = f"{args.timestring}_{index:05}_{args.seed}.png"
-                        image.save(os.path.join(args.outdir, filename))
+                        save_8_16_or_32bpc_image(image, args.outdir, filename, args.bit_depth_output)
                     if args.display_samples:
+                        if args.bit_depth_output != 8:
+                            image = convert_image_to_8bpc(image, args.bit_depth_output)
                         display.display(image)
                     index += 1
                 args.seed = next_seed(args)
@@ -104,8 +146,27 @@ def render_image_batch(args, prompts, root):
             display.clear_output(wait=True)            
             display.display(grid_image)
 
+def unsharp_mask(img, kernel_size=(5, 5), sigma=1.0, amount=1.0, threshold=0):
+    """Return a sharpened version of the image, using an unsharp mask."""
+    blurred = cv2.GaussianBlur(img, kernel_size, sigma)
+    sharpened = float(amount + 1) * img - float(amount) * blurred
+    sharpened = np.maximum(sharpened, np.zeros(sharpened.shape))
+    sharpened = np.minimum(sharpened, 255 * np.ones(sharpened.shape))
+    sharpened = sharpened.round().astype(np.uint8)
+    if threshold > 0:
+        low_contrast_mask = np.absolute(img - blurred) < threshold
+        np.copyto(sharpened, img, where=low_contrast_mask)
+    return sharpened
+
 
 def render_animation(args, anim_args, animation_prompts, root):
+    # handle hybrid video generation
+    if anim_args.animation_mode in ['2D','3D']:
+        if anim_args.hybrid_video_composite or anim_args.hybrid_video_motion in ['Affine', 'Perspective', 'Optical Flow']:
+            args, anim_args, inputfiles = render_animation_hybrid_video_generation(args, anim_args, root)
+            # path required by hybrid functions, even if hybrid_video_comp_save_extra_frames is False
+            hybrid_frame_path = os.path.join(args.outdir, 'hybridframes')
+
     # animations use key framed prompts
     args.prompts = animation_prompts
 
@@ -144,14 +205,19 @@ def render_animation(args, anim_args, animation_prompts, root):
 
     # check for video inits
     using_vid_init = anim_args.animation_mode == 'Video Input'
+    args.using_vid_init = using_vid_init
 
-    # load depth model for 3D
+    # load depth model for 3D (or depth compositing)
     predict_depths = (anim_args.animation_mode == '3D' and anim_args.use_depth_warping) or anim_args.save_depth_maps
+    predict_depths = predict_depths or (anim_args.hybrid_video_composite and anim_args.hybrid_video_comp_mask_type in ['Depth','Video Depth'])
     if predict_depths:
         depth_model = DepthModel(root.device)
         depth_model.load_midas(root.models_path, root.half_precision)
         if anim_args.midas_weight < 1.0:
             depth_model.load_adabins(root.models_path)
+        # depth based compositing requires saved depth maps
+        if anim_args.hybrid_video_composite and anim_args.hybrid_video_comp_mask_type =='Depth':
+            anim_args.save_depth_maps = True
     else:
         depth_model = None
         anim_args.save_depth_maps = False
@@ -164,7 +230,7 @@ def render_animation(args, anim_args, animation_prompts, root):
     # resume animation
     prev_sample = None
     color_match_sample = None
-    if anim_args.resume_from_timestring:
+    if anim_args.resume_from_timestring and not using_vid_init:
         last_frame = start_frame-1
         if turbo_steps > 1:
             last_frame -= last_frame%turbo_steps
@@ -186,6 +252,17 @@ def render_animation(args, anim_args, animation_prompts, root):
         noise = keys.noise_schedule_series[frame_idx]
         strength = keys.strength_schedule_series[frame_idx]
         contrast = keys.contrast_schedule_series[frame_idx]
+        kernel = int(keys.kernel_schedule_series[frame_idx])
+        sigma = keys.sigma_schedule_series[frame_idx]
+        amount = keys.amount_schedule_series[frame_idx]
+        threshold = keys.threshold_schedule_series[frame_idx]
+        hybrid_video_comp_schedules = {
+            "alpha": keys.hybrid_video_comp_alpha_schedule_series[frame_idx],
+            "mask_blend_alpha": keys.hybrid_video_comp_mask_blend_alpha_schedule_series[frame_idx],
+            "mask_contrast": keys.hybrid_video_comp_mask_contrast_schedule_series[frame_idx],
+            "mask_auto_contrast_cutoff_low": int(keys.hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule_series[frame_idx]),
+            "mask_auto_contrast_cutoff_high": int(keys.hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule_series[frame_idx]),
+        }
         depth = None
         
         # emit in-between frames
@@ -206,6 +283,22 @@ def render_animation(args, anim_args, animation_prompts, root):
                     turbo_prev_image, _ = anim_frame_warp(turbo_prev_image, args, anim_args, keys, tween_frame_idx, depth_model, depth=depth, device=root.device)
                 if advance_next:
                     turbo_next_image, _ = anim_frame_warp(turbo_next_image, args, anim_args, keys, tween_frame_idx, depth_model, depth=depth, device=root.device)
+
+                # hybrid video motion - warps turbo_prev_image or turbo_next_image to match motion
+                if tween_frame_idx > 0:
+                    if anim_args.hybrid_video_motion in ['Affine', 'Perspective']:
+                        matrix = get_matrix_for_hybrid_motion(tween_frame_idx-1, (args.W, args.H), inputfiles, anim_args.hybrid_video_motion)
+                        if advance_prev:
+                            turbo_prev_image = image_transform_ransac(turbo_prev_image, matrix, anim_args.hybrid_video_motion, cv2.BORDER_WRAP if anim_args.border == 'wrap' else cv2.BORDER_REPLICATE)
+                        if advance_next:
+                            turbo_next_image = image_transform_ransac(turbo_next_image, matrix, anim_args.hybrid_video_motion, cv2.BORDER_WRAP if anim_args.border == 'wrap' else cv2.BORDER_REPLICATE)
+                    if anim_args.hybrid_video_motion in ['Optical Flow']:
+                        flow = get_flow_for_hybrid_motion(tween_frame_idx-1, (args.W, args.H), inputfiles, hybrid_frame_path, anim_args.hybrid_video_flow_method, anim_args.hybrid_video_comp_save_extra_frames)
+                        if advance_prev:
+                            turbo_prev_image = image_transform_optical_flow(turbo_prev_image, flow, cv2.BORDER_WRAP if anim_args.border == 'wrap' else cv2.BORDER_REPLICATE)
+                        if advance_next:
+                            turbo_next_image = image_transform_optical_flow(turbo_next_image, flow, cv2.BORDER_WRAP if anim_args.border == 'wrap' else cv2.BORDER_REPLICATE)
+
                 # Transformed raw image before color coherence and noise. Used for mask overlay
                 if args.use_mask and args.overlay_mask:
                     # Apply transforms to the original image
@@ -236,14 +329,27 @@ def render_animation(args, anim_args, animation_prompts, root):
                 filename = f"{args.timestring}_{tween_frame_idx:05}.png"
                 cv2.imwrite(os.path.join(args.outdir, filename), cv2.cvtColor(img.astype(np.uint8), cv2.COLOR_RGB2BGR))
                 if anim_args.save_depth_maps:
-                    depth_model.save(os.path.join(args.outdir, f"{args.timestring}_depth_{tween_frame_idx:05}.png"), depth)
+                    depth_model.save(os.path.join(args.outdir, f"{args.timestring}_depth_{tween_frame_idx:05}.png"), depth, args.bit_depth_output)
             if turbo_next_image is not None:
                 prev_sample = sample_from_cv2(turbo_next_image)
 
         # apply transforms to previous frame
         if prev_sample is not None:
             prev_img, depth = anim_frame_warp(prev_sample, args, anim_args, keys, frame_idx, depth_model, depth=None, device=root.device)
-            
+
+            # hybrid video motion - warps prev_img to match motion, usually to prepare for compositing
+            if frame_idx > 0:
+                if anim_args.hybrid_video_motion in ['Affine', 'Perspective']:
+                    matrix = get_matrix_for_hybrid_motion(frame_idx-1, (args.W, args.H), inputfiles, anim_args.hybrid_video_motion)
+                    prev_img = image_transform_ransac(prev_img, matrix, anim_args.hybrid_video_motion, cv2.BORDER_WRAP if anim_args.border == 'wrap' else cv2.BORDER_REPLICATE)    
+                if anim_args.hybrid_video_motion in ['Optical Flow']:
+                    flow = get_flow_for_hybrid_motion(frame_idx-1, (args.W, args.H), inputfiles, hybrid_frame_path, anim_args.hybrid_video_flow_method, anim_args.hybrid_video_comp_save_extra_frames)
+                    prev_img = image_transform_optical_flow(prev_img, flow, cv2.BORDER_WRAP if anim_args.border == 'wrap' else cv2.BORDER_REPLICATE)
+
+            # do hybrid video - composites video frame into prev_img (now warped if using motion)
+            if anim_args.hybrid_video_composite:
+                args, prev_img = render_animation_hybrid_composite(args, anim_args, frame_idx, prev_img, depth_model, hybrid_video_comp_schedules)
+
             # Transformed raw image before color coherence and noise. Used for mask overlay
             if args.use_mask and args.overlay_mask:
                 # Apply transforms to the original image
@@ -268,6 +374,14 @@ def render_animation(args, anim_args, animation_prompts, root):
             
             # apply color matching
             if anim_args.color_coherence != 'None':
+                # video color matching
+                hybrid_video_available = anim_args.hybrid_video_composite or anim_args.hybrid_video_motion in ['Optical Flow', 'Affine', 'Perspective']
+                if anim_args.color_coherence == 'Video Input' and hybrid_video_available:
+                    video_color_coherence_frame = int(frame_idx) % int(anim_args.color_coherence_video_every_N_frames) == 0
+                    if video_color_coherence_frame:
+                        prev_vid_img = Image.open(os.path.join(args.outdir, 'inputframes', f"{frame_idx:05}.jpg"))
+                        prev_vid_img = prev_vid_img.resize((args.W, args.H), Image.Resampling.LANCZOS)
+                        color_match_sample = np.asarray(prev_vid_img)
                 if color_match_sample is None:
                     color_match_sample = prev_img.copy()
                 else:
@@ -275,6 +389,9 @@ def render_animation(args, anim_args, animation_prompts, root):
 
             # apply scaling
             contrast_sample = prev_img * contrast
+            # apply anti-blur
+            contrast_sample = unsharp_mask(contrast_sample, (kernel, kernel), sigma, amount, threshold)
+
             # apply frame noising
             noised_sample = add_noise(sample_from_cv2(contrast_sample), noise)
 
@@ -304,6 +421,12 @@ def render_animation(args, anim_args, animation_prompts, root):
                 mask_frame = os.path.join(args.outdir, 'maskframes', f"{frame_idx+1:05}.jpg")
                 args.mask_file = mask_frame
 
+        # reallybigname mod \\\
+        if anim_args.hybrid_video_use_video_as_mse_image:
+            args.init_mse_image = os.path.join(args.outdir, 'inputframes', f"{frame_idx:05}.jpg")
+            print(f"Using {args.init_mse_image} as init_mse_image")
+        # reallybigname mod ///
+
         # sample the diffusion model
         sample, image = generate(args, root, frame_idx, return_latent=False, return_sample=True)
         # First image sample used for masking
@@ -319,11 +442,16 @@ def render_animation(args, anim_args, animation_prompts, root):
             frame_idx += turbo_steps
         else:    
             filename = f"{args.timestring}_{frame_idx:05}.png"
-            image.save(os.path.join(args.outdir, filename))
+            # Save image to 8bpc or 16bpc
+            save_8_16_or_32bpc_image(image, args.outdir, filename, args.bit_depth_output)
             if anim_args.save_depth_maps:
                 depth = depth_model.predict(sample_to_cv2(sample), anim_args)
-                depth_model.save(os.path.join(args.outdir, f"{args.timestring}_depth_{frame_idx:05}.png"), depth)
+                depth_model.save(os.path.join(args.outdir, f"{args.timestring}_depth_{frame_idx:05}.png"), depth, args.bit_depth_output)
             frame_idx += 1
+
+        # Convert image to 8bpc to display
+        if args.bit_depth_output != 8: 
+            image = convert_image_to_8bpc(image, args.bit_depth_output) 
 
         display.clear_output(wait=True)
         display.display(image)
@@ -387,6 +515,10 @@ def render_interpolation(args, anim_args, animation_prompts, root):
         c, image = results[0], results[1]
         prompts_c_s.append(c) 
       
+        # Convert image to 8bpc to display
+        if args.bit_depth_output != 8: 
+            image = convert_image_to_8bpc(image, args.bit_depth_output) 
+      
         # display.clear_output(wait=True)
         display.display(image)
       
@@ -415,8 +547,13 @@ def render_interpolation(args, anim_args, animation_prompts, root):
                 image = results[0]
 
                 filename = f"{args.timestring}_{frame_idx:05}.png"
-                image.save(os.path.join(args.outdir, filename))
+                # Save image to 8bpc or 16bpc
+                save_8_16_or_32bpc_image(image, args.outdir, filename, args.bit_depth_output)
                 frame_idx += 1
+
+                # Convert image to 8bpc to display
+                if args.bit_depth_output != 8: 
+                    image = convert_image_to_8bpc(image, args.bit_depth_output) 
 
                 display.clear_output(wait=True)
                 display.display(image)
@@ -436,8 +573,12 @@ def render_interpolation(args, anim_args, animation_prompts, root):
                 image = results[0]
 
                 filename = f"{args.timestring}_{frame_idx:05}.png"
-                image.save(os.path.join(args.outdir, filename))
+                save_8_16_or_32bpc_image(image, args.outdir, filename, args.bit_depth_output)
                 frame_idx += 1
+
+                # Convert image to 8bpc to display
+                if args.bit_depth_output != 8: 
+                    image = convert_image_to_8bpc(image, args.bit_depth_output) 
 
                 display.clear_output(wait=True)
                 display.display(image)
@@ -449,7 +590,11 @@ def render_interpolation(args, anim_args, animation_prompts, root):
     results = generate(args, root)
     image = results[0]
     filename = f"{args.timestring}_{frame_idx:05}.png"
-    image.save(os.path.join(args.outdir, filename))
+    save_8_16_or_32bpc_image(image, args.outdir, filename, args.bit_depth_output)
+
+    # Convert image to 8bpc to display
+    if args.bit_depth_output != 8: 
+        image = convert_image_to_8bpc(image, args.bit_depth_output) 
 
     display.clear_output(wait=True)
     display.display(image)
@@ -457,3 +602,272 @@ def render_interpolation(args, anim_args, animation_prompts, root):
 
     #clear init_c
     args.init_c = None
+
+def render_animation_hybrid_video_generation(args, anim_args, root):
+    video_in_frame_path = os.path.join(args.outdir, 'inputframes')
+    hybrid_frame_path = os.path.join(args.outdir, 'hybridframes')
+
+    if anim_args.hybrid_video_generate_inputframes:
+        # create folders for the video input frames and optional hybrid frames to live in
+        os.makedirs(video_in_frame_path, exist_ok=True)
+        os.makedirs(hybrid_frame_path, exist_ok=True)
+
+        if anim_args.overwrite_extracted_frames:
+            # remove old inputframes (preferrable, to get accurate max_frames)
+            files = pathlib.Path(video_in_frame_path).glob('*.jpg')
+            for f in files: os.remove(f)
+
+        # save the video frames from input video
+        print(f"Video to extract: {anim_args.video_init_path}")
+        print(f"Extracting video (1 every {anim_args.extract_nth_frame}) frames to {video_in_frame_path}...")
+        vid2frames(anim_args.video_init_path, video_in_frame_path, anim_args.extract_nth_frame, anim_args.overwrite_extracted_frames)
+
+    # determine max frames from length of input frames
+    anim_args.max_frames = len([f for f in pathlib.Path(video_in_frame_path).glob('*.jpg')])
+    print(f"Using {anim_args.max_frames} input frames from {video_in_frame_path}...")
+
+    # get sorted list of inputfiles
+    inputfiles = sorted(pathlib.Path(video_in_frame_path).glob('*.jpg'))
+
+    # use first frame as init
+    if anim_args.hybrid_video_use_first_frame_as_init_image:
+        for f in inputfiles:
+            args.init_image = str(f)
+            args.use_init = True
+            print(f"Using init_image from video: {args.init_image}")
+            break
+
+    return args, anim_args, inputfiles
+
+def render_animation_hybrid_composite(args, anim_args, frame_idx, prev_img, depth_model, hybrid_video_comp_schedules):
+    video_frame = os.path.join(args.outdir, 'inputframes', f"{frame_idx:05}.jpg")
+    video_depth_frame = os.path.join(args.outdir, 'hybridframes', f"vid-depth{frame_idx:05}.jpg")
+    depth_frame = os.path.join(args.outdir, f"{args.timestring}_depth_{frame_idx-1:05}.png")
+    mask_frame = os.path.join(args.outdir, 'hybridframes', f"mask{frame_idx:05}.jpg")
+    comp_frame = os.path.join(args.outdir, 'hybridframes', f"comp{frame_idx:05}.jpg")
+    prev_frame = os.path.join(args.outdir, 'hybridframes', f"prev{frame_idx:05}.jpg")
+    prev_img_hybrid = Image.fromarray(prev_img)       
+    video_image = Image.open(video_frame)
+    video_image = video_image.resize((args.W, args.H), Image.Resampling.LANCZOS)
+    hybrid_mask = None
+
+    # composite mask types
+    if anim_args.hybrid_video_comp_mask_type == 'Depth': # get depth from last generation
+        hybrid_mask = Image.open(depth_frame)
+    elif anim_args.hybrid_video_comp_mask_type == 'Video Depth': # get video depth
+        video_depth = depth_model.predict(np.array(video_image), anim_args)
+        depth_model.save(video_depth_frame, video_depth)
+        hybrid_mask = Image.open(video_depth_frame)
+    elif anim_args.hybrid_video_comp_mask_type == 'Blend': # create blend mask image
+        hybrid_mask = Image.blend(ImageOps.grayscale(prev_img_hybrid), ImageOps.grayscale(video_image), hybrid_video_comp_schedules['mask_blend_alpha'])
+    elif anim_args.hybrid_video_comp_mask_type == 'Difference': # create difference mask image
+        hybrid_mask = ImageChops.difference(ImageOps.grayscale(prev_img_hybrid), ImageOps.grayscale(video_image))
+        
+    # optionally invert mask, if mask type is defined
+    if anim_args.hybrid_video_comp_mask_inverse and anim_args.hybrid_video_comp_mask_type != "None":
+        hybrid_mask = ImageOps.invert(hybrid_mask)
+
+    # if a mask type is selected, make composition
+    if hybrid_mask == None:
+        hybrid_comp = video_image
+    else:
+        # ensure grayscale
+        hybrid_mask = ImageOps.grayscale(hybrid_mask)
+        # equalization before
+        if anim_args.hybrid_video_comp_mask_equalize in ['Before', 'Both']:
+            hybrid_mask = ImageOps.equalize(hybrid_mask)        
+        # contrast
+        hybrid_mask = ImageEnhance.Contrast(hybrid_mask).enhance(hybrid_video_comp_schedules['mask_contrast'])
+        # auto contrast with cutoffs lo/hi
+        if anim_args.hybrid_video_comp_mask_auto_contrast:
+            hybrid_mask = autocontrast_grayscale(np.array(hybrid_mask), hybrid_video_comp_schedules['mask_auto_contrast_cutoff_low'], hybrid_video_comp_schedules['mask_auto_contrast_cutoff_high'])
+            hybrid_mask = Image.fromarray(hybrid_mask)
+            hybrid_mask = ImageOps.grayscale(hybrid_mask)   
+        if anim_args.hybrid_video_comp_save_extra_frames:
+            hybrid_mask.save(mask_frame)
+        # equalization after
+        if anim_args.hybrid_video_comp_mask_equalize in ['After', 'Both']:
+            hybrid_mask = ImageOps.equalize(hybrid_mask)        
+        # do compositing and save
+        hybrid_comp = Image.composite(prev_img_hybrid, video_image, hybrid_mask)            
+        if anim_args.hybrid_video_comp_save_extra_frames:
+            hybrid_comp.save(comp_frame)
+
+    # final blend of composite with prev_img, or just a blend if no composite is selected
+    hybrid_blend = Image.blend(prev_img_hybrid, hybrid_comp, hybrid_video_comp_schedules['alpha'])  
+    if anim_args.hybrid_video_comp_save_extra_frames:
+        hybrid_blend.save(prev_frame)
+    prev_img = hybrid_blend
+
+    # restore to np array and return
+    return args, np.array(prev_img)
+
+def get_hybrid_video_motion_default_matrix(hybrid_video_motion):
+    if hybrid_video_motion == "Perspective":
+        arr = np.array([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]])
+    else:
+        arr = np.array([[1., 0., 0.], [0., 1., 0.]])
+    return arr
+
+def get_translation_matrix_from_images(i1, i2, dimensions, hybrid_video_motion, max_corners=200, quality_level=0.01, min_distance=30, block_size=3):
+    img1 = cv2.imread(i1, 0)
+    img2 = cv2.imread(i2, 0)
+    img1 = cv2.resize(img1, (dimensions[0], dimensions[1]), cv2.INTER_AREA)
+    img2 = cv2.resize(img2, (dimensions[0], dimensions[1]), cv2.INTER_AREA)
+    
+    # Detect feature points in previous frame
+    prev_pts = cv2.goodFeaturesToTrack(img1,
+                                        maxCorners=max_corners,
+                                        qualityLevel=quality_level,
+                                        minDistance=min_distance,
+                                        blockSize=block_size)
+
+    if prev_pts is None or len(prev_pts) < 8:
+        return get_hybrid_video_motion_default_matrix(hybrid_video_motion)
+
+    # Get optical flow
+    curr_pts, status, err = cv2.calcOpticalFlowPyrLK(img1, img2, prev_pts, None) 
+   
+    # Filter only valid points
+    idx = np.where(status==1)[0]
+    prev_pts = prev_pts[idx]
+    curr_pts = curr_pts[idx]
+
+    if len(prev_pts) < 8 or len(curr_pts) < 8:
+        return get_hybrid_video_motion_default_matrix(hybrid_video_motion)
+    
+    if hybrid_video_motion == "Perspective":  # Perspective - Find the transformation between points
+        transformation_matrix, mask = cv2.findHomography(prev_pts, curr_pts, cv2.RANSAC, 5.0)
+        return transformation_matrix
+    else: # Affine - Compute a rigid transformation (without depth, only scale + rotation + translation)
+        transformation_rigid_matrix, rigid_mask = cv2.estimateAffinePartial2D(prev_pts, curr_pts)
+        return transformation_rigid_matrix
+
+def get_flow_from_images(img1, img2, dimensions, method):
+    i1 = cv2.imread(img1)
+    i2 = cv2.imread(img2)
+    i1 = cv2.resize(i1, (dimensions[0], dimensions[1]), cv2.INTER_AREA)
+    i2 = cv2.resize(i2, (dimensions[0], dimensions[1]), cv2.INTER_AREA)
+    if method == "DenseRLOF":
+        r = get_flow_from_images_Dense_RLOF(i1, i2)
+    elif method == "SF":
+        r = get_flow_from_images_SF(i1, i2)
+    elif method =="Farneback":
+        r = get_flow_from_images_Farneback(i1, i2)
+    return r
+        
+def get_flow_from_images_Farneback(img1, img2, last_flow=None, pyr_scale = 0.5, levels = 3, winsize = 15, iterations = 3, poly_n = 5, poly_sigma = 1.2):
+    i1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+    i2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+    flags = 0 # flags = cv2.OPTFLOW_USE_INITIAL_FLOW    
+    flow = cv2.calcOpticalFlowFarneback(i1, i2, last_flow, pyr_scale, levels, winsize, iterations, poly_n, poly_sigma, flags)
+    return flow
+
+def get_flow_from_images_Dense_RLOF(i1, i2, last_flow=None):
+    return cv2.optflow.calcOpticalFlowDenseRLOF(i1, i2, flow = last_flow)
+
+def get_flow_from_images_SF(i1, i2, last_flow=None):
+    layers = 3
+    averaging_block_size = 2
+    max_flow = 4
+    return cv2.optflow.calcOpticalFlowSF(i1, i2, layers, averaging_block_size, max_flow)
+
+def image_transform_ransac(image_cv2, xform, hybrid_video_motion, border_mode=cv2.BORDER_REPLICATE):
+    if hybrid_video_motion == "Perspective":
+        return image_transform_perspective(image_cv2, xform, border_mode=border_mode)
+    else: # Affine
+        return image_transform_affine(image_cv2, xform, border_mode=border_mode)
+
+def image_transform_affine(image_cv2, xform, border_mode=cv2.BORDER_REPLICATE):
+    return cv2.warpAffine(
+        image_cv2,
+        xform,
+        (image_cv2.shape[1],image_cv2.shape[0]),
+        borderMode=border_mode
+    )
+
+def image_transform_perspective(image_cv2, xform, border_mode=cv2.BORDER_REPLICATE):
+    return cv2.warpPerspective(
+        image_cv2,
+        xform,
+        (image_cv2.shape[1], image_cv2.shape[0]),
+        borderMode=border_mode
+    )
+
+def image_transform_optical_flow(img, flow, border_mode=cv2.BORDER_REPLICATE, flow_reverse=False):
+    h, w = flow.shape[:2]
+    if not flow_reverse:
+        flow = -flow
+    flow[:, :, 0] += np.arange(w)
+    flow[:, :, 1] += np.arange(h)[:,np.newaxis]
+    r = cv2.remap(
+        img,
+        flow,
+        None,
+        cv2.INTER_LINEAR
+        # border_mode
+    )
+    return r
+
+def get_matrix_for_hybrid_motion(frame_idx, dimensions, inputfiles, hybrid_video_motion):
+    matrix = get_translation_matrix_from_images(str(inputfiles[frame_idx]), str(inputfiles[frame_idx+1]), dimensions, hybrid_video_motion)
+    print(f"Calculating {hybrid_video_motion} RANSAC matrix for frames {frame_idx} to {frame_idx+1}")
+    return matrix
+
+def get_flow_for_hybrid_motion(frame_idx, dimensions, inputfiles, hybrid_frame_path, method, save_flow_visualization=False):
+    print(f"Calculating optical flow for frames {frame_idx} to {frame_idx+1}")
+    flow = get_flow_from_images(str(inputfiles[frame_idx]), str(inputfiles[frame_idx+1]), dimensions, method)
+    if save_flow_visualization:
+        flow_img_file = os.path.join(hybrid_frame_path, f"flow{frame_idx:05}.jpg")
+        flow_cv2 = cv2.imread(str(inputfiles[frame_idx]))
+        flow_cv2 = cv2.resize(flow_cv2, (dimensions[0], dimensions[1]), cv2.INTER_AREA)
+        flow_cv2 = cv2.cvtColor(flow_cv2,cv2.COLOR_BGR2RGB)
+        flow_cv2 = draw_flow_lines_in_grid_in_color(flow_cv2, flow)
+        flow_PIL = Image.fromarray(np.uint8(flow_cv2))
+        flow_PIL.save(flow_img_file)
+        print(f"Saved optical flow visualization: {flow_img_file}")
+    return flow
+
+def draw_flow_lines_in_grid_in_color(img, flow, step=8, magnitude_multiplier=1, min_magnitude = 1, max_magnitude = 100):
+    flow = flow * magnitude_multiplier
+    h, w = img.shape[:2]
+    y, x = np.mgrid[step/2:h:step, step/2:w:step].reshape(2,-1).astype(int)
+    fx, fy = flow[y,x].T
+    lines = np.vstack([x, y, x+fx, y+fy]).T.reshape(-1, 2, 2)
+    lines = np.int32(lines + 0.5)
+    vis = img.copy()  # Create a copy of the input image
+    mag, ang = cv2.cartToPolar(flow[...,0], flow[...,1])
+    hsv = np.zeros((flow.shape[0], flow.shape[1], 3), dtype=np.uint8)
+    hsv[...,0] = ang*180/np.pi/2
+    hsv[...,1] = 255
+    hsv[...,2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
+    bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+
+    # Iterate through the lines
+    for (x1, y1), (x2, y2) in lines:
+        # Calculate the magnitude of the line
+        magnitude = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+
+        # Only draw the line if it falls within the magnitude range
+        if min_magnitude <= magnitude <= max_magnitude:
+            b = int(bgr[y1, x1, 0])
+            g = int(bgr[y1, x1, 1])
+            r = int(bgr[y1, x1, 2])
+            color = (b, g, r)
+            cv2.arrowedLine(vis, (x1, y1), (x2, y2), color, thickness=1, tipLength=0.2)    
+
+    return vis
+
+def autocontrast_grayscale(image, low_cutoff=0, high_cutoff=100):
+    # Perform autocontrast on a grayscale np array image.
+    # Find the minimum and maximum values in the image
+    min_val = np.percentile(image, low_cutoff)
+    max_val = np.percentile(image, high_cutoff)
+
+    # Scale the image so that the minimum value is 0 and the maximum value is 255
+    image = 255 * (image - min_val) / (max_val - min_val)
+
+    # Clip values that fall outside the range [0, 255]
+    image = np.clip(image, 0, 255)
+
+    return image
