@@ -3,14 +3,10 @@
 # !!   "id": "ByGXyiHZWM_q"
 # !! }}
 """
-# **Deforum Stable Diffusion v0.6**
-[Stable Diffusion](https://github.com/CompVis/stable-diffusion) by Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, Björn Ommer and the [Stability.ai](https://stability.ai/) Team. [K Diffusion](https://github.com/crowsonkb/k-diffusion) by [Katherine Crowson](https://twitter.com/RiversHaveWings).
+# **Deforum Stable Diffusion v0.7**
+[Stable Diffusion](https://github.com/CompVis/stable-diffusion) by Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, Björn Ommer and the [Stability.ai](https://stability.ai/) Team. [K Diffusion](https://github.com/crowsonkb/k-diffusion) by [Katherine Crowson](https://twitter.com/RiversHaveWings). Notebook by [deforum](https://discord.gg/upmXXsrwZc)
 
 [Quick Guide](https://docs.google.com/document/d/1RrQv7FntzOuLg4ohjRZPVL7iptIyBhwwbcEYEW2OfcI/edit?usp=sharing) to Deforum v0.6
-
-Notebook by [deforum](https://discord.gg/upmXXsrwZc)
-
-- added v2 base model
 """
 
 # %%
@@ -53,8 +49,8 @@ def setup_environment():
         all_process = [
             ['pip', 'install', 'torch==1.12.1+cu113', 'torchvision==0.13.1+cu113', '--extra-index-url', 'https://download.pytorch.org/whl/cu113'],
             ['pip', 'install', 'omegaconf==2.2.3', 'einops==0.4.1', 'pytorch-lightning==1.7.4', 'torchmetrics==0.9.3', 'torchtext==0.13.1', 'transformers==4.21.2', 'safetensors', 'kornia==0.6.7'],
-            ['git', 'clone', '-b', 'dev', 'https://github.com/deforum-art/deforum-stable-diffusion'],
-            ['pip', 'install', 'accelerate', 'ftfy', 'jsonmerge', 'matplotlib', 'resize-right', 'timm', 'torchdiffeq','scikit-learn','torchsde','open_clip_torch'],
+            ['git', 'clone', 'https://github.com/deforum-art/deforum-stable-diffusion'],
+            ['pip', 'install', 'accelerate', 'ftfy', 'jsonmerge', 'matplotlib', 'resize-right', 'timm', 'torchdiffeq','scikit-learn','torchsde','open-clip-torch', 'numpngw'],
         ]
         for process in all_process:
             running = subprocess.run(process,stdout=subprocess.PIPE).stdout.decode('utf-8')
@@ -146,9 +142,8 @@ def Root():
     output_path_gdrive = "/content/drive/MyDrive/AI/StableDiffusion" #@param {type:"string"}
 
     #@markdown **Model Setup**
-    #@markdown Select v2-inference-v.yaml for the 768 models
-    model_config = "v1-inference.yaml" #@param ["custom","v2-inference.yaml","v2-inference-v.yaml","v1-inference.yaml"]
-    model_checkpoint =  "v1-5-pruned-emaonly.ckpt" #@param ["custom","v2-1_768-ema-pruned.ckpt","v2-1_512-ema-pruned.ckpt","768-v-ema.ckpt","512-base-ema.ckpt","v1-5-pruned.ckpt","v1-5-pruned-emaonly.ckpt","sd-v1-4-full-ema.ckpt","sd-v1-4.ckpt","sd-v1-3-full-ema.ckpt","sd-v1-3.ckpt","sd-v1-2-full-ema.ckpt","sd-v1-2.ckpt","sd-v1-1-full-ema.ckpt","sd-v1-1.ckpt", "robo-diffusion-v1.ckpt","wd-v1-3-float16.ckpt"]
+    model_config = "v1-inference.yaml" #@param ["custom","v2-inference.yaml","v1-inference.yaml"]
+    model_checkpoint =  "v1-5-pruned-emaonly.ckpt" #@param ["custom","512-base-ema.ckpt","v1-5-pruned.ckpt","v1-5-pruned-emaonly.ckpt","sd-v1-4-full-ema.ckpt","sd-v1-4.ckpt","sd-v1-3-full-ema.ckpt","sd-v1-3.ckpt","sd-v1-2-full-ema.ckpt","sd-v1-2.ckpt","sd-v1-1-full-ema.ckpt","sd-v1-1.ckpt", "robo-diffusion-v1.ckpt","wd-v1-3-float16.ckpt"]
     custom_config_path = "" #@param {type:"string"}
     custom_checkpoint_path = "" #@param {type:"string"}
     half_precision = True
@@ -201,21 +196,9 @@ def DeforumAnimArgs():
     noise_schedule = "0: (0.02)"#@param {type:"string"}
     strength_schedule = "0: (0.65)"#@param {type:"string"}
     contrast_schedule = "0: (1.0)"#@param {type:"string"}
-    hybrid_video_comp_alpha_schedule = "0:(1)" #@param {type:"string"}
-    hybrid_video_comp_mask_blend_alpha_schedule = "0:(0.5)" #@param {type:"string"}
-    hybrid_video_comp_mask_contrast_schedule = "0:(1)" #@param {type:"string"}
-    hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule =  "0:(0)" #@param {type:"string"}
-    hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule =  "0:(0)" #@param {type:"string"}
-
-    #@markdown ####**Unsharp mask (anti-blur) Parameters:**
-    kernel_schedule = "0: (5)"#@param {type:"string"}
-    sigma_schedule = "0: (1.0)"#@param {type:"string"}
-    amount_schedule = "0: (0.2)"#@param {type:"string"}
-    threshold_schedule = "0: (0.0)"#@param {type:"string"}
 
     #@markdown ####**Coherence:**
-    color_coherence = 'Match Frame 0 LAB' #@param ['None', 'Match Frame 0 HSV', 'Match Frame 0 LAB', 'Match Frame 0 RGB', 'Video Input'] {type:'string'}
-    color_coherence_video_every_N_frames = 1 #@param {type:"integer"}
+    color_coherence = 'Match Frame 0 LAB' #@param ['None', 'Match Frame 0 HSV', 'Match Frame 0 LAB', 'Match Frame 0 RGB'] {type:'string'}
     diffusion_cadence = '1' #@param ['1','2','3','4','5','6','7','8'] {type:'string'}
 
     #@markdown ####**3D Depth Warping:**
@@ -234,18 +217,6 @@ def DeforumAnimArgs():
     overwrite_extracted_frames = True #@param {type:"boolean"}
     use_mask_video = False #@param {type:"boolean"}
     video_mask_path ='/content/video_in.mp4'#@param {type:"string"}
-
-    #@markdown ####**Hybrid Video for 2D/3D Animation Mode:**
-    hybrid_video_generate_inputframes = False #@param {type:"boolean"}
-    hybrid_video_use_first_frame_as_init_image = True #@param {type:"boolean"}
-    hybrid_video_motion = "None" #@param ['None','Optical Flow','Perspective','Affine'}
-    hybrid_video_flow_method = "Farneback" #@param ['Farneback','DenseRLOF','SF']
-    hybrid_video_composite = False #@param {type:"boolean"}
-    hybrid_video_comp_mask_type = "None" #@param ['None', 'Depth', 'Video Depth', 'Blend', 'Difference']
-    hybrid_video_comp_mask_inverse = False #@param {type:"boolean"}
-    hybrid_video_comp_mask_equalize = "None" #@param  ['None','Before','After','Both']
-    hybrid_video_comp_mask_auto_contrast = False #@param {type:"boolean"}
-    hybrid_video_comp_save_extra_frames = False #@param {type:"boolean"}
 
     #@markdown ####**Interpolation:**
     interpolate_key_frames = False #@param {type:"boolean"}
@@ -292,7 +263,6 @@ def DeforumArgs():
     W = 512 #@param
     H = 512 #@param
     W, H = map(lambda x: x - x % 64, (W, H))  # resize to integer multiple of 64
-    bit_depth_output = 8 #@param [8, 16, 32] {type:"number"}
 
     #@markdown **Sampling Settings**
     seed = -1 #@param
@@ -319,8 +289,7 @@ def DeforumArgs():
     n_batch = 1 #@param
     batch_name = "StableFun" #@param {type:"string"}
     filename_format = "{timestring}_{index}_{prompt}.png" #@param ["{timestring}_{index}_{seed}.png","{timestring}_{index}_{prompt}.png"]
-    seed_behavior = "iter" #@param ["iter","fixed","random","ladder","alternate"]
-    seed_iter_N = 1 #@param {type:'integer'}
+    seed_behavior = "iter" #@param ["iter","fixed","random"]
     make_grid = False #@param {type:"boolean"}
     grid_rows = 2 #@param 
     outdir = get_output_folder(root.output_path, batch_name)
@@ -393,7 +362,6 @@ def DeforumArgs():
     init_sample_raw = None
     mask_sample = None
     init_c = None
-    seed_internal = 0
 
     return locals()
 
@@ -466,7 +434,6 @@ mp4_path = "/content/drive/MyDrive/AI/StableDiffusion/2022-09/20220903000939.mp4
 render_steps = False  #@param {type: 'boolean'}
 path_name_modifier = "x0_pred" #@param ["x0_pred","x"]
 make_gif = False
-bitdepth_extension = "exr" if args.bit_depth_output == 32 else "png"
 
 if skip_video_for_run_all == True:
     print('Skipping video creation, uncheck skip_video_for_run_all if you want to run it')
@@ -489,7 +456,7 @@ else:
             mp4_path = os.path.join(newest_dir, f"{args.timestring}_{path_name_modifier}.mp4")
             max_frames = str(args.steps)
         else: # render images for a video
-            image_path = os.path.join(args.outdir, f"{args.timestring}_%05d.{bitdepth_extension}")
+            image_path = os.path.join(args.outdir, f"{args.timestring}_%05d.png")
             mp4_path = os.path.join(args.outdir, f"{args.timestring}.mp4")
             max_frames = str(anim_args.max_frames)
 
@@ -497,7 +464,7 @@ else:
     cmd = [
         'ffmpeg',
         '-y',
-        '-vcodec', bitdepth_extension,
+        '-vcodec', 'png',
         '-r', str(fps),
         '-start_number', str(0),
         '-i', image_path,
