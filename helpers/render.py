@@ -353,6 +353,10 @@ def render_animation(args, anim_args, animation_prompts, root):
                 if anim_args.hybrid_video_motion in ['Optical Flow']:
                     flow = get_flow_for_hybrid_motion(frame_idx-1, (args.W, args.H), inputfiles, hybrid_frame_path, anim_args.hybrid_video_flow_method, anim_args.hybrid_video_comp_save_extra_frames)
                     prev_img = image_transform_optical_flow(prev_img, flow, cv2.BORDER_WRAP if anim_args.border == 'wrap' else cv2.BORDER_REPLICATE)
+                # set init_mse_image to current video frame
+                if anim_args.hybrid_video_use_video_as_mse_image:
+                    args.init_mse_image = os.path.join(args.outdir, 'inputframes', f"{frame_idx:05}.jpg")
+                    print(f"Using {args.init_mse_image} as init_mse_image")
 
             # do hybrid video - composites video frame into prev_img (now warped if using motion)
             if anim_args.hybrid_video_composite:
@@ -428,10 +432,6 @@ def render_animation(args, anim_args, animation_prompts, root):
             if anim_args.use_mask_video:
                 mask_frame = os.path.join(args.outdir, 'maskframes', f"{frame_idx+1:05}.jpg")
                 args.mask_file = mask_frame
-
-        if anim_args.hybrid_video_use_video_as_mse_image:
-            args.init_mse_image = os.path.join(args.outdir, 'inputframes', f"{frame_idx:05}.jpg")
-            print(f"Using {args.init_mse_image} as init_mse_image")
 
         # sample the diffusion model
         sample, image = generate(args, root, frame_idx, return_latent=False, return_sample=True)
@@ -643,6 +643,12 @@ def render_animation_hybrid_video_generation(args, anim_args, root):
             print(f"Using init_image from video: {args.init_image}")
             break
 
+    # use first frame as mse_init
+    if anim_args.hybrid_video_use_video_as_mse_image:
+        for f in inputfiles:
+            args.init_mse_image = str(f)
+            print(f"Using {args.init_mse_image} as init_mse_image")
+            break
     return args, anim_args, inputfiles
 
 def render_animation_hybrid_composite(args, anim_args, frame_idx, prev_img, depth_model, hybrid_video_comp_schedules):
