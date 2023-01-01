@@ -539,7 +539,6 @@ else:
 # !! {"main_metadata":{
 # !!   "accelerator": "GPU",
 # !!   "colab": {
-# !!     "machine_shape": "hm",
 # !!     "provenance": []
 # !!   },
 # !!   "gpuClass": "standard",
