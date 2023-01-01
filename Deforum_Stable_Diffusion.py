@@ -30,8 +30,9 @@ print(f"{sub_p_res[:-1]}")
 # %%
 # !! {"metadata":{
 # !!   "cellView": "form",
-# !!   "id": "0D2HQO-PWM_t"
+# !!   "id": "vohUiWo-I2HQ"
 # !! }}
+#@markdown **Environment Setup**
 import subprocess, time, gc, os, sys
 
 def setup_environment():
@@ -48,7 +49,7 @@ def setup_environment():
         all_process = [
             ['pip', 'install', 'torch==1.12.1+cu113', 'torchvision==0.13.1+cu113', '--extra-index-url', 'https://download.pytorch.org/whl/cu113'],
             ['pip', 'install', 'omegaconf==2.2.3', 'einops==0.4.1', 'pytorch-lightning==1.7.4', 'torchmetrics==0.9.3', 'torchtext==0.13.1', 'transformers==4.21.2', 'safetensors', 'kornia==0.6.7'],
-            ['git', 'clone', '-b', 'dev', 'https://github.com/deforum-art/deforum-stable-diffusion'],
+            ['git', 'clone', 'https://github.com/deforum-art/deforum-stable-diffusion'],
             ['pip', 'install', 'accelerate', 'ftfy', 'jsonmerge', 'matplotlib', 'resize-right', 'timm', 'torchdiffeq','scikit-learn','torchsde','open-clip-torch','numpngw'],
         ]
         for process in all_process:
@@ -130,12 +131,17 @@ from helpers.render import render_animation, render_input_video, render_image_ba
 from helpers.model_load import make_linear_decode, load_model, get_model_output_paths
 from helpers.aesthetics import load_aesthetics_model
 
+# %%
+# !! {"metadata":{
+# !!   "cellView": "form",
+# !!   "id": "0D2HQO-PWM_t"
+# !! }}
 #@markdown **Path Setup**
 
 def Root():
     models_path = "models" #@param {type:"string"}
     configs_path = "configs" #@param {type:"string"}
-    output_path = "output" #@param {type:"string"}
+    output_path = "outputs" #@param {type:"string"}
     mount_google_drive = True #@param {type:"boolean"}
     models_path_gdrive = "/content/drive/MyDrive/AI/models" #@param {type:"string"}
     output_path_gdrive = "/content/drive/MyDrive/AI/StableDiffusion" #@param {type:"string"}
@@ -193,7 +199,7 @@ def DeforumAnimArgs():
     hybrid_video_comp_alpha_schedule = "0:(1)" #@param {type:"string"}
     hybrid_video_comp_mask_blend_alpha_schedule = "0:(0.5)" #@param {type:"string"}
     hybrid_video_comp_mask_contrast_schedule = "0:(1)" #@param {type:"string"}
-    hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule =  "0:(0)" #@param {type:"string"}
+    hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule =  "0:(100)" #@param {type:"string"}
     hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule =  "0:(0)" #@param {type:"string"}
 
     #@markdown ####**Unsharp mask (anti-blur) Parameters:**
@@ -279,8 +285,8 @@ custom_settings_file = "/content/drive/MyDrive/Settings.txt"#@param {type:"strin
 
 def DeforumArgs():
     #@markdown **Image Settings**
-    W = 512 #@param
-    H = 512 #@param
+    W = 768 #@param
+    H = 768 #@param
     W, H = map(lambda x: x - x % 64, (W, H))  # resize to integer multiple of 64
     bit_depth_output = 8 #@param [8, 16, 32] {type:"raw"}
 
@@ -316,7 +322,7 @@ def DeforumArgs():
     outdir = get_output_folder(root.output_path, batch_name)
 
     #@markdown **Init Settings**
-    use_init = True #@param {type:"boolean"}
+    use_init = False #@param {type:"boolean"}
     strength = 0.1 #@param {type:"number"}
     strength_0_no_init = True # Set the strength to 0 automatically when no init image is used
     init_image = "https://cdn.pixabay.com/photo/2022/07/30/13/10/green-longhorn-beetle-7353749_1280.jpg" #@param {type:"string"}
@@ -451,8 +457,8 @@ skip_video_for_run_all = True #@param {type: 'boolean'}
 fps = 12 #@param {type:"number"}
 #@markdown **Manual Settings**
 use_manual_settings = False #@param {type:"boolean"}
-image_path = "/content/drive/MyDrive/AI/StableDiffusion/2022-09/20220903000939_%05d.png" #@param {type:"string"}
-mp4_path = "/content/drive/MyDrive/AI/StableDiffusion/2022-09/20220903000939.mp4" #@param {type:"string"}
+image_path = "/content/drive/MyDrive/AI/StableDiffusion/2023-01/StableFun/20230101212135_%05d.png" #@param {type:"string"}
+mp4_path = "/content/drive/MyDrive/AI/StableDiffusion/2023-01/StableFun/20230101212135.mp4" #@param {type:"string"}
 render_steps = False  #@param {type: 'boolean'}
 path_name_modifier = "x0_pred" #@param ["x0_pred","x"]
 make_gif = False
@@ -539,7 +545,6 @@ else:
 # !! {"main_metadata":{
 # !!   "accelerator": "GPU",
 # !!   "colab": {
-# !!     "machine_shape": "hm",
 # !!     "provenance": []
 # !!   },
 # !!   "gpuClass": "standard",
@@ -558,7 +563,7 @@ else:
 # !!     "name": "python",
 # !!     "nbconvert_exporter": "python",
 # !!     "pygments_lexer": "ipython3",
-# !!     "version": "3.10.8"
+# !!     "version": "3.10.6"
 # !!   },
 # !!   "orig_nbformat": 4,
 # !!   "vscode": {

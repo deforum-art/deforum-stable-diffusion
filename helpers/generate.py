@@ -59,8 +59,8 @@ def generate(args, root, frame = 0, return_latent=False, return_sample=False, re
             init_latent = root.model.get_first_stage_encoding(root.model.encode_first_stage(init_image))  # move to latent space        
 
     if not args.use_init and args.strength > 0 and args.strength_0_no_init:
-        print("\nNo init image, but strength > 0. Strength has been auto set to 0, since use_init is False.")
-        print("If you want to force strength > 0 with no init, please set strength_0_no_init to False.\n")
+        #print("\nNo init image, but strength > 0. Strength has been auto set to 0, since use_init is False.")
+        #print("If you want to force strength > 0 with no init, please set strength_0_no_init to False.\n")
         args.strength = 0
 
     # Mask functions

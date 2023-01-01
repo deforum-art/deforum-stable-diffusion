@@ -11,6 +11,7 @@ cc-outputs.log
 
 # Output Images
 output/
+outputs/
 
 # Model files
 configs/

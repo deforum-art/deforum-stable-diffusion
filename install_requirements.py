@@ -44,6 +44,7 @@ packages = [
 # Install each package
 for package in packages:
     try:
-        subprocess.call(["pip", "install", package])
+        print(f"..installing {package}")
+        running = subprocess.call(["pip", "install", "-q", package])
     except Exception as e:
-        print(f"Failed to install {package}: {e}")
+        print(f"failed to install {package}: {e}")
