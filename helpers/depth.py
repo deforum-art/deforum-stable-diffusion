@@ -14,7 +14,16 @@ from infer import InferenceHelper
 from midas.dpt_depth import DPTDepthModel
 from midas.transforms import Resize, NormalizeImage, PrepareForNet
 
-from numpngw import write_png
+try:
+    from numpngw import write_png
+except ModuleNotFoundError:
+    print(ModuleNotFoundError)
+    import subprocess
+    running = subprocess.run(['pip', 'install', 'numpngw'],stdout=subprocess.PIPE).stdout.decode('utf-8')
+    print(running)
+    from numpngw import write_png
+
+from tqdm import tqdm
 
 def wget(url, outputdir):
     filename = url.split("/")[-1]
@@ -35,6 +44,33 @@ def wget(url, outputdir):
         model_file.write(ckpt_request.content)
 
 
+def download_file(url, models_path):
+    filename = url.split("/")[-1]
+
+    # Create the models_path directory if it does not exist
+    os.makedirs(models_path, exist_ok=True)
+    
+    # Send a GET request to the URL
+    response = requests.get(url, stream=True)
+    
+    # Get the total file size
+    file_size = int(response.headers.get("Content-Length"))
+    
+    # Open a file in binary mode to write the content
+    with open(os.path.join(models_path, filename), "wb") as f:
+        # Initialize the progress bar
+        pbar = tqdm(total=file_size, unit="B", unit_scale=True)
+        
+        # Iterate through the response data and write it to the file
+        for data in response.iter_content(1024):
+            f.write(data)
+            # Update the progress bar manually
+            pbar.update(len(data))
+        
+        # Close the progress bar
+        pbar.close()
+
+
 class DepthModel():
     def __init__(self, device):
         self.adabins_helper = None
@@ -46,15 +82,15 @@ class DepthModel():
     
     def load_adabins(self, models_path):
         if not os.path.exists(os.path.join(models_path,'AdaBins_nyu.pt')):
-            print("Downloading AdaBins_nyu.pt...")
+            print("..downloading AdaBins_nyu.pt")
             os.makedirs(models_path, exist_ok=True)
-            wget("https://cloudflare-ipfs.com/ipfs/Qmd2mMnDLWePKmgfS8m6ntAg4nhV5VkUyAydYBp8cWWeB7/AdaBins_nyu.pt", models_path)
+            download_file("https://huggingface.co/deforum/AdaBins/resolve/main/AdaBins_nyu.pt", models_path)
         self.adabins_helper = InferenceHelper(models_path, dataset='nyu', device=self.device)
 
     def load_midas(self, models_path, half_precision=True):
         if not os.path.exists(os.path.join(models_path, 'dpt_large-midas-2f21e586.pt')):
-            print("Downloading dpt_large-midas-2f21e586.pt...")
-            wget("https://github.com/intel-isl/DPT/releases/download/1_0/dpt_large-midas-2f21e586.pt", models_path)
+            print("..downloading dpt_large-midas-2f21e586.pt")
+            download_file("https://huggingface.co/deforum/MiDaS/resolve/main/dpt_large-midas-2f21e586.pt", models_path)
 
         self.midas_model = DPTDepthModel(
             path=os.path.join(models_path, "dpt_large-midas-2f21e586.pt"),

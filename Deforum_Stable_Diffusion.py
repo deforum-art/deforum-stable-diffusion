@@ -30,8 +30,9 @@ print(f"{sub_p_res[:-1]}")
 # %%
 # !! {"metadata":{
 # !!   "cellView": "form",
-# !!   "id": "0D2HQO-PWM_t"
+# !!   "id": "vohUiWo-I2HQ"
 # !! }}
+#@markdown **Environment Setup**
 import subprocess, time, gc, os, sys
 
 def setup_environment():
@@ -130,12 +131,17 @@ from helpers.render import render_animation, render_input_video, render_image_ba
 from helpers.model_load import make_linear_decode, load_model, get_model_output_paths
 from helpers.aesthetics import load_aesthetics_model
 
+# %%
+# !! {"metadata":{
+# !!   "cellView": "form",
+# !!   "id": "0D2HQO-PWM_t"
+# !! }}
 #@markdown **Path Setup**
 
 def Root():
     models_path = "models" #@param {type:"string"}
     configs_path = "configs" #@param {type:"string"}
-    output_path = "output" #@param {type:"string"}
+    output_path = "outputs" #@param {type:"string"}
     mount_google_drive = True #@param {type:"boolean"}
     models_path_gdrive = "/content/drive/MyDrive/AI/models" #@param {type:"string"}
     output_path_gdrive = "/content/drive/MyDrive/AI/StableDiffusion" #@param {type:"string"}
@@ -557,7 +563,7 @@ else:
 # !!     "name": "python",
 # !!     "nbconvert_exporter": "python",
 # !!     "pygments_lexer": "ipython3",
-# !!     "version": "3.10.8"
+# !!     "version": "3.10.6"
 # !!   },
 # !!   "orig_nbformat": 4,
 # !!   "vscode": {

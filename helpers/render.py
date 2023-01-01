@@ -220,7 +220,7 @@ def render_animation(args, anim_args, animation_prompts, root):
     predict_depths = predict_depths or (anim_args.hybrid_video_composite and anim_args.hybrid_video_comp_mask_type in ['Depth','Video Depth'])
     if predict_depths:
         depth_model = DepthModel(root.device)
-        depth_model.load_midas(root.models_path, root.half_precision)
+        depth_model.load_midas(root.models_path)
         if anim_args.midas_weight < 1.0:
             depth_model.load_adabins(root.models_path)
         # depth based compositing requires saved depth maps
@@ -311,10 +311,7 @@ def render_animation(args, anim_args, animation_prompts, root):
                 if args.use_mask and args.overlay_mask:
                     # Apply transforms to the original image
                     init_image_raw, _ = anim_frame_warp(args.init_sample_raw, args, anim_args, keys, frame_idx, depth_model, depth, device=root.device)
-                    if root.half_precision:
-                        args.init_sample_raw = sample_from_cv2(init_image_raw).half().to(root.device)
-                    else:
-                        args.init_sample_raw = sample_from_cv2(init_image_raw).to(root.device)
+                    args.init_sample_raw = sample_from_cv2(init_image_raw).half().to(root.device)
 
                 #Transform the mask image
                 if args.use_mask:
@@ -322,10 +319,7 @@ def render_animation(args, anim_args, animation_prompts, root):
                         args.mask_sample = prepare_overlay_mask(args, root, prev_sample.shape)
                     # Transform the mask
                     mask_image, _ = anim_frame_warp(args.mask_sample, args, anim_args, keys, frame_idx, depth_model, depth, device=root.device)
-                    if root.half_precision:
-                        args.mask_sample = sample_from_cv2(mask_image).half().to(root.device)
-                    else:
-                        args.mask_sample = sample_from_cv2(mask_image).to(root.device)
+                    args.mask_sample = sample_from_cv2(mask_image).half().to(root.device)
 
                 turbo_prev_frame_idx = turbo_next_frame_idx = tween_frame_idx
 
@@ -366,11 +360,7 @@ def render_animation(args, anim_args, animation_prompts, root):
             if args.use_mask and args.overlay_mask:
                 # Apply transforms to the original image
                 init_image_raw, _ = anim_frame_warp(args.init_sample_raw, args, anim_args, keys, frame_idx, depth_model, depth, device=root.device)
-                
-                if root.half_precision:
-                    args.init_sample_raw = sample_from_cv2(init_image_raw).half().to(root.device)
-                else:
-                    args.init_sample_raw = sample_from_cv2(init_image_raw).to(root.device)
+                args.init_sample_raw = sample_from_cv2(init_image_raw).half().to(root.device)
 
             #Transform the mask image
             if args.use_mask:
@@ -378,11 +368,7 @@ def render_animation(args, anim_args, animation_prompts, root):
                     args.mask_sample = prepare_overlay_mask(args, root, prev_sample.shape)
                 # Transform the mask
                 mask_sample, _ = anim_frame_warp(args.mask_sample, args, anim_args, keys, frame_idx, depth_model, depth, device=root.device)
-                
-                if root.half_precision:
-                    args.mask_sample = sample_from_cv2(mask_sample).half().to(root.device)
-                else:
-                    args.mask_sample = sample_from_cv2(mask_sample).to(root.device)
+                args.mask_sample = sample_from_cv2(mask_sample).half().to(root.device)
             
             # apply color matching
             if anim_args.color_coherence != 'None':
@@ -409,10 +395,7 @@ def render_animation(args, anim_args, animation_prompts, root):
 
             # use transformed previous frame as init for current
             args.use_init = True
-            if root.half_precision:
-                args.init_sample = noised_sample.half().to(root.device)
-            else:
-                args.init_sample = noised_sample.to(root.device)
+            args.init_sample = noised_sample.half().to(root.device)
             args.strength = max(0.0, min(1.0, strength))
 
         # grab prompt for current frame
