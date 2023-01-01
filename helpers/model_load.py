@@ -3,6 +3,8 @@ import torch
 from tqdm import tqdm
 import requests
 
+#from memory_profiler import profile
+
 # Decodes the image without passing through the upscaler. The resulting image will be the same size as the latent
 # Thanks to Kevin Turner (https://github.com/keturn) we have a shortcut to look at the decoded image!
 def make_linear_decode(model_version, device='cuda:0'):
@@ -66,7 +68,7 @@ def download_model(model_map,root):
                     pbar.update(len(chunk))
 
 
-
+#@profile
 def load_model(root, load_on_run_all=True, check_sha256=True):
 
     import torch
@@ -212,7 +214,7 @@ def load_model(root, load_on_run_all=True, check_sha256=True):
         except:
             print("..could not verify model integrity")
 
-    def load_model_from_config(config, ckpt, verbose=False, device='cuda', half_precision=True,print_flag=False):
+    def load_model_from_config(config, ckpt, verbose=False, device='cuda', print_flag=False):
         map_location = "cuda" # ["cpu", "cuda"]
         print(f"..loading model")
         _ , extension = os.path.splitext(ckpt)
@@ -225,8 +227,10 @@ def load_model(root, load_on_run_all=True, check_sha256=True):
             if "global_step" in pl_sd:
                 if print_flag:
                     print(f"Global Step: {pl_sd['global_step']}")
+        torch.set_default_dtype(torch.float16)
         model = instantiate_from_config(config.model)
-        m, u = model.load_state_dict(sd, strict=False)
+        torch.set_default_dtype(torch.float32)
+        m, u = model.load_state_dict(pl_sd["state_dict"], strict=False)
         if print_flag:
             if len(m) > 0 and verbose:
                 print("missing keys:")
@@ -235,16 +239,13 @@ def load_model(root, load_on_run_all=True, check_sha256=True):
                 print("unexpected keys:")
                 print(u)
 
-        if half_precision:
-            model = model.half().to(device)
-        else:
-            model = model.to(device)
+        model = model.half().to(device)
         model.eval()
         return model
 
     if load_on_run_all and ckpt_valid:
         local_config = OmegaConf.load(f"{ckpt_config_path}")
-        model = load_model_from_config(local_config, f"{ckpt_path}", half_precision=root.half_precision)
+        model = load_model_from_config(local_config, f"{ckpt_path}")
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         model = model.to(device)
 
