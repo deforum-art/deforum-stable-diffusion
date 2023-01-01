@@ -70,7 +70,7 @@ conda install pytorch torchvision torchaudio pytorch-cuda=11.6 -c pytorch -c nvi
 3. Install required packages with the install script:
 
 ```
-python install.py
+python install_requirements.py
 ```
 
 4. Check your installation by running the Python script:
