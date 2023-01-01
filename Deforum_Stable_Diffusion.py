@@ -193,7 +193,7 @@ def DeforumAnimArgs():
     hybrid_video_comp_alpha_schedule = "0:(1)" #@param {type:"string"}
     hybrid_video_comp_mask_blend_alpha_schedule = "0:(0.5)" #@param {type:"string"}
     hybrid_video_comp_mask_contrast_schedule = "0:(1)" #@param {type:"string"}
-    hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule =  "0:(0)" #@param {type:"string"}
+    hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule =  "0:(100)" #@param {type:"string"}
     hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule =  "0:(0)" #@param {type:"string"}
 
     #@markdown ####**Unsharp mask (anti-blur) Parameters:**
@@ -279,8 +279,8 @@ custom_settings_file = "/content/drive/MyDrive/Settings.txt"#@param {type:"strin
 
 def DeforumArgs():
     #@markdown **Image Settings**
-    W = 512 #@param
-    H = 512 #@param
+    W = 768 #@param
+    H = 768 #@param
     W, H = map(lambda x: x - x % 64, (W, H))  # resize to integer multiple of 64
     bit_depth_output = 8 #@param [8, 16, 32] {type:"raw"}
 
@@ -316,7 +316,7 @@ def DeforumArgs():
     outdir = get_output_folder(root.output_path, batch_name)
 
     #@markdown **Init Settings**
-    use_init = True #@param {type:"boolean"}
+    use_init = False #@param {type:"boolean"}
     strength = 0.1 #@param {type:"number"}
     strength_0_no_init = True # Set the strength to 0 automatically when no init image is used
     init_image = "https://cdn.pixabay.com/photo/2022/07/30/13/10/green-longhorn-beetle-7353749_1280.jpg" #@param {type:"string"}
