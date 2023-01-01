@@ -16,7 +16,7 @@ Welcome to Deforum Stable Diffusion!
 - [Key Features](#key-features)
 - [Before You Start](#before-you-start)
 - [Getting Started](#getting-started)
-- [Running Deforum Stable Diffusion](#running-deforum-stable-diffusion)
+- [Running Deforum](#running-deforum)
 - [Starting Over](#starting-over)
 - [Customization](#customization)
 - [Contributing](#contributing)
@@ -79,7 +79,7 @@ python install.py
 python Deforum_Stable_Diffusion.py
 ```
 
-## Running Deforum Stable Diffusion
+## Running Deforum
 
 There are four ways to run Deforum Stable Diffusion: locally with the `.py` file, locally with Jupyter, locally through Colab, and on Colab servers.
 
