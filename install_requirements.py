@@ -7,7 +7,6 @@ packages = [
     "clean-fid",
     "colab-convert",
     "einops",
-    "ffmpeg",
     "ftfy",
     "ipython",
     "ipywidgets",
