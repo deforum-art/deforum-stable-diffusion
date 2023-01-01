@@ -62,7 +62,7 @@ cd deforum-stable-diffusion
 2. Create a suitable anaconda environment for Deforum, activate it, and install Pytorch:
 
 ```
-conda create -n dsd python=3.10.6 -y
+conda create -n dsd python=3.8 -y
 conda activate dsd
 conda install pytorch torchvision torchaudio pytorch-cuda=11.6 -c pytorch -c nvidia -y
 ```
