@@ -48,7 +48,7 @@ Before you start installing and using Deforum Stable Diffusion, there are a few 
 
 Once you have completed these steps, you will be ready to install Deforum Stable Diffusion.
 
-## Gettings Started
+## Getting Started
 
 To install Deforum Stable Diffusion, follow these steps:
 
