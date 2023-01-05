@@ -26,9 +26,14 @@ from .load_images import load_img, load_mask_latent, prepare_mask, prepare_overl
 def add_noise(sample: torch.Tensor, noise_amt: float) -> torch.Tensor:
     return sample + torch.randn(sample.shape, device=sample.device) * noise_amt
 
-def generate(args, root, frame = 0, return_latent=False, return_sample=False, return_c=False):
+def generate(args, root, frame = 0, return_latent=False, return_sample=False, return_c=False, sampler_name=None):
     seed_everything(args.seed)
     os.makedirs(args.outdir, exist_ok=True)
+    
+    available_samplers = ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral", "dpm_fast", "dpm_adaptive", "dpmpp_2s_a", "dpmpp_2m", "ddim", "plms"]
+    if sampler_name is not None:
+        if sampler_name in available_samplers:
+            args.sampler = sampler_name
 
     sampler = PLMSSampler(root.model) if args.sampler == 'plms' else DDIMSampler(root.model)
     if root.model.parameterization == "v":

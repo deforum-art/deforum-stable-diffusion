@@ -271,6 +271,9 @@ def render_animation(args, anim_args, animation_prompts, root):
             "mask_auto_contrast_cutoff_low": int(keys.hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule_series[frame_idx]),
             "mask_auto_contrast_cutoff_high": int(keys.hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule_series[frame_idx]),
         }
+        sampler_name = None
+        if anim_args.enable_schedule_samplers:
+            sampler_name = keys.sampler_schedule_series[frame_idx]
         depth = None
         
         # emit in-between frames
@@ -403,6 +406,7 @@ def render_animation(args, anim_args, animation_prompts, root):
         args.clip_prompt = args.prompt
         print(f"{args.prompt} {args.seed}")
         if not using_vid_init:
+            print(f"Sampler: {sampler_name}")
             print(f"Angle: {keys.angle_series[frame_idx]} Zoom: {keys.zoom_series[frame_idx]}")
             print(f"Tx: {keys.translation_x_series[frame_idx]} Ty: {keys.translation_y_series[frame_idx]} Tz: {keys.translation_z_series[frame_idx]}")
             print(f"Rx: {keys.rotation_3d_x_series[frame_idx]} Ry: {keys.rotation_3d_y_series[frame_idx]} Rz: {keys.rotation_3d_z_series[frame_idx]}")
@@ -417,7 +421,7 @@ def render_animation(args, anim_args, animation_prompts, root):
                 args.mask_file = mask_frame
 
         # sample the diffusion model
-        sample, image = generate(args, root, frame_idx, return_latent=False, return_sample=True)
+        sample, image = generate(args, root, frame_idx, return_latent=False, return_sample=True, sampler_name=sampler_name)
         # First image sample used for masking
         if not using_vid_init:
             prev_sample = sample
