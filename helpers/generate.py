@@ -30,7 +30,7 @@ def generate(args, root, frame = 0, return_latent=False, return_sample=False, re
     seed_everything(args.seed)
     os.makedirs(args.outdir, exist_ok=True)
     
-    available_samplers = ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral", "dpm_fast", "dpm_adaptive", "dpmpp_2s_a", "dpmpp_2m", "ddim", "plms"]
+    available_samplers = ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral", "dpm_fast", "dpm_adaptive", "dpmpp_2s_a", "dpmpp_2m"]
     if sampler_name is not None:
         if sampler_name in available_samplers:
             args.sampler = sampler_name

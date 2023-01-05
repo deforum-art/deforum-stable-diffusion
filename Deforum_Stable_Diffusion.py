@@ -204,7 +204,7 @@ def DeforumAnimArgs():
 
     #@markdown ####**Sampler Scheduling:**
     enable_schedule_samplers = True #@param {type:"boolean"}
-    sampler_schedule = "0:('euler'),10:('dpm2'),20:('dpm2_ancestral'),30:('heun'),40:('euler'),50:('euler_ancestral'),60:('dpm_fast'),70:('dpm_adaptive'),80:('dpmpp_2s_a'),90:('dpmpp_2m'),100:('ddim'),110:('plms')" #@param {type:"string"}
+    sampler_schedule = "0:('euler'),10:('dpm2'),20:('dpm2_ancestral'),30:('heun'),40:('euler'),50:('euler_ancestral'),60:('dpm_fast'),70:('dpm_adaptive'),80:('dpmpp_2s_a'),90:('dpmpp_2m')" #@param {type:"string"}
 
     #@markdown ####**Unsharp mask (anti-blur) Parameters:**
     kernel_schedule = "0: (5)"#@param {type:"string"}
