@@ -203,7 +203,7 @@ def DeforumAnimArgs():
     hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule =  "0:(0)" #@param {type:"string"}
 
     #@markdown ####**Sampler Scheduling:**
-    enable_schedule_samplers = True #@param {type:"boolean"}
+    enable_schedule_samplers = False #@param {type:"boolean"}
     sampler_schedule = "0:('euler'),10:('dpm2'),20:('dpm2_ancestral'),30:('heun'),40:('euler'),50:('euler_ancestral'),60:('dpm_fast'),70:('dpm_adaptive'),80:('dpmpp_2s_a'),90:('dpmpp_2m')" #@param {type:"string"}
 
     #@markdown ####**Unsharp mask (anti-blur) Parameters:**
