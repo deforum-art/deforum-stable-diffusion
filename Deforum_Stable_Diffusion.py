@@ -147,8 +147,9 @@ def Root():
     output_path_gdrive = "/content/drive/MyDrive/AI/StableDiffusion" #@param {type:"string"}
 
     #@markdown **Model Setup**
-    model_config = "v2-inference-v.yaml" #@param ["custom","v2-inference.yaml","v2-inference-v.yaml","v1-inference.yaml"]
-    model_checkpoint =  "v2-1_768-ema-pruned.ckpt" #@param ["custom","v2-1_768-ema-pruned.ckpt","v2-1_512-ema-pruned.ckpt","768-v-ema.ckpt","512-base-ema.ckpt","v1-5-pruned.ckpt","v1-5-pruned-emaonly.ckpt","sd-v1-4-full-ema.ckpt","sd-v1-4.ckpt","sd-v1-3-full-ema.ckpt","sd-v1-3.ckpt","sd-v1-2-full-ema.ckpt","sd-v1-2.ckpt","sd-v1-1-full-ema.ckpt","sd-v1-1.ckpt", "robo-diffusion-v1.ckpt","wd-v1-3-float16.ckpt"]
+    map_location = "cuda" #@param ["cpu", "cuda"]
+    model_config = "v2-inference.yaml" #@param ["custom","v2-inference.yaml","v2-inference-v.yaml","v1-inference.yaml"]
+    model_checkpoint =  "v2-1_512-ema-pruned.ckpt" #@param ["custom","v2-1_768-ema-pruned.ckpt","v2-1_512-ema-pruned.ckpt","768-v-ema.ckpt","512-base-ema.ckpt","v1-5-pruned.ckpt","v1-5-pruned-emaonly.ckpt","sd-v1-4-full-ema.ckpt","sd-v1-4.ckpt","sd-v1-3-full-ema.ckpt","sd-v1-3.ckpt","sd-v1-2-full-ema.ckpt","sd-v1-2.ckpt","sd-v1-1-full-ema.ckpt","sd-v1-1.ckpt", "robo-diffusion-v1.ckpt","wd-v1-3-float16.ckpt"]
     custom_config_path = "" #@param {type:"string"}
     custom_checkpoint_path = "" #@param {type:"string"}
     return locals()
@@ -157,7 +158,7 @@ root = Root()
 root = SimpleNamespace(**root)
 
 root.models_path, root.output_path = get_model_output_paths(root)
-root.model, root.device = load_model(root, load_on_run_all=True, check_sha256=True)
+root.model, root.device = load_model(root, load_on_run_all=True, check_sha256=True, map_location=root.map_location)
 
 # %%
 # !! {"metadata":{
@@ -309,7 +310,7 @@ def DeforumArgs():
     #@markdown **Prompt Settings**
     prompt_weighting = True #@param {type:"boolean"}
     normalize_prompt_weights = True #@param {type:"boolean"}
-    log_weighted_subprompts = False #@param {type:"boolean"}
+    log_weighted_subprompts = True #@param {type:"boolean"}
 
     #@markdown **Batch Settings**
     n_batch = 1 #@param
