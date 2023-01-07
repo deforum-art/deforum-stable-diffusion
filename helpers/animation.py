@@ -289,6 +289,7 @@ class DeformAnimKeys():
         self.noise_schedule_series = get_inbetweens(parse_key_frames(anim_args.noise_schedule), anim_args.max_frames)
         self.strength_schedule_series = get_inbetweens(parse_key_frames(anim_args.strength_schedule), anim_args.max_frames)
         self.contrast_schedule_series = get_inbetweens(parse_key_frames(anim_args.contrast_schedule), anim_args.max_frames)
+        self.sampler_schedule_series = get_inbetweens(parse_key_frames(anim_args.sampler_schedule), anim_args.max_frames, is_single_string = True)
         self.kernel_schedule_series = get_inbetweens(parse_key_frames(anim_args.kernel_schedule), anim_args.max_frames)
         self.sigma_schedule_series = get_inbetweens(parse_key_frames(anim_args.sigma_schedule), anim_args.max_frames)
         self.amount_schedule_series = get_inbetweens(parse_key_frames(anim_args.amount_schedule), anim_args.max_frames)
@@ -299,7 +300,7 @@ class DeformAnimKeys():
         self.hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule_series = get_inbetweens(parse_key_frames(anim_args.hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule), anim_args.max_frames)
         self.hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule_series = get_inbetweens(parse_key_frames(anim_args.hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule), anim_args.max_frames)
 
-def get_inbetweens(key_frames, max_frames, integer=False, interp_method='Linear'):
+def get_inbetweens(key_frames, max_frames, integer=False, interp_method='Linear', is_single_string = False):
     import numexpr
     key_frame_series = pd.Series([np.nan for a in range(max_frames)])
     
@@ -313,8 +314,13 @@ def get_inbetweens(key_frames, max_frames, integer=False, interp_method='Linear'
                 key_frame_series[i] = value
         if not value_is_number:
             t = i
-            key_frame_series[i] = numexpr.evaluate(value)
-    key_frame_series = key_frame_series.astype(float)
+            if is_single_string:
+                if value.find("'") > -1:
+                    value = value.replace("'","")
+                if value.find('"') > -1:
+                    value = value.replace('"',"")
+            key_frame_series[i] = numexpr.evaluate(value) if not is_single_string else value # workaround for values formatted like 0:("I am test") //used for sampler schedules
+    key_frame_series = key_frame_series.astype(float) if not is_single_string else key_frame_series # as string
     
     if interp_method == 'Cubic' and len(key_frames.items()) <= 3:
         interp_method = 'Quadratic'    
