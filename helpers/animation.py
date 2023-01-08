@@ -311,9 +311,9 @@ def get_inbetweens(key_frames, max_frames, integer=False, interp_method='Linear'
             if value_is_number:
                 t = i
                 key_frame_series[i] = value
-        if not value_is_number:
-            t = i
-            key_frame_series[i] = numexpr.evaluate(value)
+            if not value_is_number:
+                t = i
+                key_frame_series[i] = numexpr.evaluate(value)
     key_frame_series = key_frame_series.astype(float)
     
     if interp_method == 'Cubic' and len(key_frames.items()) <= 3:

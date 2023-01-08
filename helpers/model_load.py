@@ -69,7 +69,7 @@ def download_model(model_map,root):
 
 
 #@profile
-def load_model(root, load_on_run_all=True, check_sha256=True):
+def load_model(root, load_on_run_all=True, check_sha256=True, map_location="cuda"):
 
     import torch
     from ldm.util import instantiate_from_config
@@ -214,23 +214,22 @@ def load_model(root, load_on_run_all=True, check_sha256=True):
         except:
             print("..could not verify model integrity")
 
-    def load_model_from_config(config, ckpt, verbose=False, device='cuda', print_flag=False):
-        map_location = "cuda" # ["cpu", "cuda"]
+    def load_model_from_config(config, ckpt, verbose=False, device='cuda', print_flag=False, map_location="cuda"):
         print(f"..loading model")
         _ , extension = os.path.splitext(ckpt)
         if extension.lower() == ".safetensors":
             import safetensors.torch
-            sd = safetensors.torch.load_file(ckpt, device=map_location)
+            pl_sd = safetensors.torch.load_file(ckpt, device=map_location)
         else:
             pl_sd = torch.load(ckpt, map_location=map_location)
+        try:
             sd = pl_sd["state_dict"]
-            if "global_step" in pl_sd:
-                if print_flag:
-                    print(f"Global Step: {pl_sd['global_step']}")
+        except:
+            sd = pl_sd
         torch.set_default_dtype(torch.float16)
         model = instantiate_from_config(config.model)
         torch.set_default_dtype(torch.float32)
-        m, u = model.load_state_dict(pl_sd["state_dict"], strict=False)
+        m, u = model.load_state_dict(sd, strict=False)
         if print_flag:
             if len(m) > 0 and verbose:
                 print("missing keys:")
@@ -245,7 +244,7 @@ def load_model(root, load_on_run_all=True, check_sha256=True):
 
     if load_on_run_all and ckpt_valid:
         local_config = OmegaConf.load(f"{ckpt_config_path}")
-        model = load_model_from_config(local_config, f"{ckpt_path}")
+        model = load_model_from_config(local_config, f"{ckpt_path}", map_location)
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         model = model.to(device)
 
