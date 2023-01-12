@@ -46,7 +46,7 @@ linux_packages = [
 ]
 
 windows_packages = [
-    #"https://github.com/C43H66N12O12S2/stable-diffusion-webui/releases/download/f/xformers-0.0.14.dev0-cp310-cp310-win_amd64.whl",
+    "https://huggingface.co/deforum/xformers/blob/main/windows/xformers-0.0.15.dev0fd21b40.d20230107-cp310-cp310-win_amd64.whl",
 ]
 
 # Install each package
