@@ -77,6 +77,7 @@ def next_seed(args):
 
 def render_image_batch(args, prompts, root):
     args.prompts = {k: f"{v:05d}" for v, k in enumerate(prompts)}
+    args.using_vid_init = False
     
     # create output folder for the batch
     os.makedirs(args.outdir, exist_ok=True)

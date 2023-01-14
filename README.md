@@ -38,7 +38,7 @@ We are a community of programmers and artists who are passionate about making st
 
 Before you start installing and using Deforum Stable Diffusion, there are a few things you need to do:
 
-1. Install [ffmpeg](https://ffmpeg.org/download.html). FFmpeg is a free software project that produces libraries and programs for handling multimedia data. You will need it to process audio and video files. Follow the instructions on the website to download and install FFmpeg on your system (https://trac.ffmpeg.org/wiki/CompilationGuide). Once it is installed, make sure it is in your PATH by running `ffmpeg -h` in your terminal. If you don't get an error message, you're good to go.
+1. Install [ffmpeg](https://ffmpeg.org/download.html). FFmpeg is a free software project that produces libraries and programs for handling multimedia data. You will need it to process audio and video files. Follow the instructions on the website to download and install FFmpeg on your system (https://ffmpeg.org/ffmpeg.html). Once it is installed, make sure it is in your PATH by running `ffmpeg -h` in your terminal. If you don't get an error message, you're good to go. A guide for windows (https://phoenixnap.com/kb/ffmpeg-windows).
 2. Install the latest NVIDIA drivers for CUDA 11.7 (may not be necessary for Windows users). NVIDIA CUDA is a parallel computing platform and programming model that enables developers to use the power of NVIDIA graphics processing units (GPUs) to speed up compute-intensive tasks. You will need to install the latest NVIDIA drivers to use Deforum Stable Diffusion. You can find the drivers [here](https://developer.nvidia.com/cuda-toolkit-archive). Follow the instructions on the website to download and install the drivers.
 3. Create a [huggingface token](https://huggingface.co/settings/tokens). Hugging Face is a natural language processing platform that provides access to state-of-the-art models and tools. You will need to create a token in order to use some of the automatic model download features in Deforum Stable Diffusion. Follow the instructions on the Hugging Face website to create a token.
 4. Install [Anaconda](https://www.anaconda.com/). Anaconda is a free and open-source distribution of Python and R. It includes a package manager called conda that makes it easy to install and manage Python environments and packages. Follow the instructions on the Anaconda website to download and install Anaconda on your system.
@@ -52,19 +52,17 @@ Once you have completed these steps, you will be ready to install Deforum Stable
 
 To install Deforum Stable Diffusion, follow these steps:
 
-1. Clone this github repository and navigate to it:
-
-```
-git clone https://github.com/deforum-art/deforum-stable-diffusion.git
-cd deforum-stable-diffusion
-```
-
-2. Create a suitable anaconda environment for Deforum, activate it, and install Pytorch:
+1. Create a suitable anaconda environment for Deforum and activate it:
 
 ```
 conda create -n dsd python=3.10 -y
 conda activate dsd
-conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia -y
+```
+
+2. Clone this github repository and navigate to it:
+```
+git clone https://github.com/deforum-art/deforum-stable-diffusion.git
+cd deforum-stable-diffusion
 ```
 
 3. Install required packages with the install script:
