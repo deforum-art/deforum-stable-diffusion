@@ -52,16 +52,14 @@ Once you have completed these steps, you will be ready to install Deforum Stable
 
 To install Deforum Stable Diffusion, follow these steps:
 
-1. Create a suitable anaconda environment for Deforum, activate it, and install Pytorch:
+1. Create a suitable anaconda environment for Deforum and activate it:
 
 ```
 conda create -n dsd python=3.10 -y
 conda activate dsd
-conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia -y
 ```
 
 2. Clone this github repository and navigate to it:
-
 ```
 git clone https://github.com/deforum-art/deforum-stable-diffusion.git
 cd deforum-stable-diffusion

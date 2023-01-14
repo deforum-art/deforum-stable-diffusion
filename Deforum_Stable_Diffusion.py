@@ -45,10 +45,12 @@ def setup_environment():
         ipy = 'could not get_ipython'
     if 'google.colab' in str(ipy):
         print("..setting up environment")
+
+        # weird hack
+        import torch
         
         all_process = [
-            ['pip', 'install', 'torch==1.12.1+cu113', 'torchvision==0.13.1+cu113', '--extra-index-url', 'https://download.pytorch.org/whl/cu113'],
-            ['pip', 'install', 'omegaconf==2.2.3', 'einops==0.4.1', 'pytorch-lightning==1.7.4', 'torchmetrics==0.9.3', 'torchtext==0.13.1', 'transformers==4.21.2', 'safetensors', 'kornia==0.6.7'],
+            ['pip', 'install', 'omegaconf', 'einops==0.4.1', 'pytorch-lightning==1.7.7', 'torchmetrics', 'transformers', 'safetensors', 'kornia'],
             ['git', 'clone', '-b', 'dev', 'https://github.com/deforum-art/deforum-stable-diffusion'],
             ['pip', 'install', 'accelerate', 'ftfy', 'jsonmerge', 'matplotlib', 'resize-right', 'timm', 'torchdiffeq','scikit-learn','torchsde','open-clip-torch','numpngw'],
         ]
@@ -64,48 +66,9 @@ def setup_environment():
         ])
         if use_xformers_for_colab:
 
-            print("..installing xformers")
+            print("..installing triton and xformers")
 
-            all_process = [['pip', 'install', 'triton==2.0.0.dev20220701']]
-            for process in all_process:
-                running = subprocess.run(process,stdout=subprocess.PIPE).stdout.decode('utf-8')
-                if print_subprocess:
-                    print(running)
-
-            v_card_name = subprocess.run(['nvidia-smi', '--query-gpu=name', '--format=csv,noheader'], stdout=subprocess.PIPE).stdout.decode('utf-8')
-            if 't4' in v_card_name.lower():
-                name_to_download = 'T4'
-            elif 'v100' in v_card_name.lower():
-                name_to_download = 'V100'
-            elif 'a100' in v_card_name.lower():
-                name_to_download = 'A100'
-            elif 'p100' in v_card_name.lower():
-                name_to_download = 'P100'
-            elif 'a4000' in v_card_name.lower():
-                name_to_download = 'Non-Colab/Paperspace/A4000'
-            elif 'p5000' in v_card_name.lower():
-                name_to_download = 'Non-Colab/Paperspace/P5000'
-            elif 'quadro m4000' in v_card_name.lower():
-                name_to_download = 'Non-Colab/Paperspace/Quadro M4000'
-            elif 'rtx 4000' in v_card_name.lower():
-                name_to_download = 'Non-Colab/Paperspace/RTX 4000'
-            elif 'rtx 5000' in v_card_name.lower():
-                name_to_download = 'Non-Colab/Paperspace/RTX 5000'
-            else:
-                print(v_card_name + ' is currently not supported with xformers flash attention in deforum!')
-
-            if 'Non-Colab' in name_to_download:
-                x_ver = 'xformers-0.0.14.dev0-cp39-cp39-linux_x86_64.whl'
-            else:
-                x_ver = 'xformers-0.0.13.dev0-py3-none-any.whl'
-
-            x_link = 'https://github.com/TheLastBen/fast-stable-diffusion/raw/main/precompiled/' + name_to_download + '/' + x_ver
-
-            all_process = [
-                ['wget', '--no-verbose', '--no-clobber', x_link],
-                ['pip', 'install', x_ver],
-            ]
-
+            all_process = [['pip', 'install', 'triton==2.0.0.dev20221202', 'xformers==0.0.16rc424']]
             for process in all_process:
                 running = subprocess.run(process,stdout=subprocess.PIPE).stdout.decode('utf-8')
                 if print_subprocess:
@@ -286,15 +249,15 @@ custom_settings_file = "/content/drive/MyDrive/Settings.txt"#@param {type:"strin
 
 def DeforumArgs():
     #@markdown **Image Settings**
-    W = 768 #@param
-    H = 768 #@param
+    W = 512 #@param
+    H = 512 #@param
     W, H = map(lambda x: x - x % 64, (W, H))  # resize to integer multiple of 64
     bit_depth_output = 8 #@param [8, 16, 32] {type:"raw"}
 
     #@markdown **Sampling Settings**
     seed = -1 #@param
-    sampler = 'dpmpp_2s_a' #@param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim", "dpm_fast", "dpm_adaptive", "dpmpp_2s_a", "dpmpp_2m"]
-    steps = 80 #@param
+    sampler = 'euler_ancestral' #@param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim", "dpm_fast", "dpm_adaptive", "dpmpp_2s_a", "dpmpp_2m"]
+    steps = 50 #@param
     scale = 7 #@param
     ddim_eta = 0.0 #@param
     dynamic_threshold = None
@@ -310,7 +273,7 @@ def DeforumArgs():
     #@markdown **Prompt Settings**
     prompt_weighting = True #@param {type:"boolean"}
     normalize_prompt_weights = True #@param {type:"boolean"}
-    log_weighted_subprompts = True #@param {type:"boolean"}
+    log_weighted_subprompts = False #@param {type:"boolean"}
 
     #@markdown **Batch Settings**
     n_batch = 1 #@param
