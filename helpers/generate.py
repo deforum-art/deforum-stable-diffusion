@@ -26,7 +26,7 @@ from .load_images import load_img, load_mask_latent, prepare_mask, prepare_overl
 def add_noise(sample: torch.Tensor, noise_amt: float) -> torch.Tensor:
     return sample + torch.randn(sample.shape, device=sample.device) * noise_amt
 
-def generate(args, root, frame = 0, return_latent=False, return_sample=False, return_c=False):
+def generate(args, root, frame=0, return_latent=False, return_sample=False, return_c=False):
     seed_everything(args.seed)
     os.makedirs(args.outdir, exist_ok=True)
 
@@ -36,9 +36,17 @@ def generate(args, root, frame = 0, return_latent=False, return_sample=False, re
     else:
         model_wrap = CompVisDenoiser(root.model)
     batch_size = args.n_samples
-    prompt = args.prompt
-    assert prompt is not None
-    data = [batch_size * [prompt]]
+
+    # cond prompts
+    cond_prompt = args.cond_prompt
+    assert cond_prompt is not None
+    cond_data = [batch_size * [cond_prompt]]
+
+    # uncond prompts
+    uncond_prompt = args.uncond_prompt
+    assert uncond_prompt is not None
+    uncond_data = [batch_size * [uncond_prompt]]
+    
     precision_scope = autocast if args.precision == "autocast" else nullcontext
 
     init_latent = None
@@ -71,7 +79,7 @@ def generate(args, root, frame = 0, return_latent=False, return_sample=False, re
 
 
         mask = prepare_mask(args.mask_file if mask_image is None else mask_image, 
-                            init_latent.shape, 
+                            init_latent.shape,
                             args.mask_contrast_adjust, 
                             args.mask_brightness_adjust,
                             args.invert_mask)
@@ -98,6 +106,7 @@ def generate(args, root, frame = 0, return_latent=False, return_sample=False, re
     assert not ( args.init_mse_scale != 0 and (args.init_mse_image is None or args.init_mse_image == '') ), "Need an init image when init_mse_scale != 0"
 
     t_enc = int((1.0-args.strength) * args.steps)
+    print(f"tenc: {t_enc}")
 
     # Noise schedule for the k-diffusion samplers (used for masking)
     k_sigmas = model_wrap.get_sigmas(args.steps)
@@ -105,7 +114,7 @@ def generate(args, root, frame = 0, return_latent=False, return_sample=False, re
     k_sigmas = k_sigmas[len(k_sigmas)-t_enc-1:]
 
     if args.sampler in ['plms','ddim']:
-        sampler.make_schedule(ddim_num_steps=args.steps, ddim_eta=args.ddim_eta, ddim_discretize='uniform', verbose=False)
+        sampler.make_schedule(ddim_num_steps=args.steps, ddim_eta=args.ddim_eta, verbose=False)
 
     if args.colormatch_scale != 0:
         assert args.colormatch_image is not None, "If using color match loss, colormatch_image is needed"
@@ -196,15 +205,15 @@ def generate(args, root, frame = 0, return_latent=False, return_sample=False, re
     with torch.no_grad():
         with precision_scope("cuda"):
             with root.model.ema_scope():
-                for prompts in data:
-                    if isinstance(prompts, tuple):
-                        prompts = list(prompts)
-                    if args.prompt_weighting:
-                        uc, c = get_uc_and_c(prompts, root.model, args, frame)
-                    else:
-                        uc = root.model.get_learned_conditioning(batch_size * [""])
-                        c = root.model.get_learned_conditioning(prompts)
+                for cond_prompts, uncond_prompts in zip(cond_data,uncond_data):
 
+                    if isinstance(cond_prompts, tuple):
+                        cond_prompts = list(cond_prompts)
+                    if isinstance(uncond_prompts, tuple):
+                        uncond_prompts = list(uncond_prompts)
+
+                    uc = root.model.get_learned_conditioning(uncond_prompts)
+                    c = root.model.get_learned_conditioning(cond_prompts)
 
                     if args.scale == 1.0:
                         uc = None
@@ -222,13 +231,13 @@ def generate(args, root, frame = 0, return_latent=False, return_sample=False, re
                             device=root.device, 
                             cb=callback,
                             verbose=False)
-                    else:
-                        # args.sampler == 'plms' or args.sampler == 'ddim':
+                    elif args.sampler in ['plms','ddim']:
                         if init_latent is not None and args.strength > 0:
                             z_enc = sampler.stochastic_encode(init_latent, torch.tensor([t_enc]*batch_size).to(root.device))
+                            samples = sampler.decode(z_enc, c, t_enc, unconditional_guidance_scale=args.scale,
+                                                 unconditional_conditioning=uc)
                         else:
                             z_enc = torch.randn([args.n_samples, args.C, args.H // args.f, args.W // args.f], device=root.device)
-                        if args.sampler in ['plms','ddim']: # no "decode" function in plms, so use "sample"
                             shape = [args.C, args.H // args.f, args.W // args.f]
                             samples, _ = sampler.sample(S=args.steps,
                                                             conditioning=c,
@@ -240,8 +249,8 @@ def generate(args, root, frame = 0, return_latent=False, return_sample=False, re
                                                             eta=args.ddim_eta,
                                                             x_T=z_enc,
                                                             img_callback=callback)
-                        else:
-                            raise Exception(f"Sampler {args.sampler} not recognised.")
+                    else:
+                        raise Exception(f"Sampler {args.sampler} not recognised.")
 
                     
                     if return_latent:

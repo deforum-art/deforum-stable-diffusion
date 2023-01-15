@@ -102,9 +102,9 @@ from helpers.aesthetics import load_aesthetics_model
 #@markdown **Path Setup**
 
 def Root():
-    models_path = "models" #@param {type:"string"}
+    models_path = "../models" #@param {type:"string"}
     configs_path = "configs" #@param {type:"string"}
-    output_path = "outputs" #@param {type:"string"}
+    output_path = "../outputs" #@param {type:"string"}
     mount_google_drive = True #@param {type:"boolean"}
     models_path_gdrive = "/content/drive/MyDrive/AI/models" #@param {type:"string"}
     output_path_gdrive = "/content/drive/MyDrive/AI/StableDiffusion" #@param {type:"string"}
@@ -221,20 +221,16 @@ def DeforumAnimArgs():
 # !! {"metadata":{
 # !!   "id": "i9fly1RIWM_u"
 # !! }}
-prompts = [
-    "a beautiful lake by Asher Brown Durand, trending on Artstation", # the first prompt I want
-    "a beautiful portrait of a woman by Artgerm, trending on Artstation", # the second prompt I want
-    #"this prompt I don't want it I commented it out",
-    #"a nousr robot, trending on Artstation", # use "nousr robot" with the robot diffusion model (see model_checkpoint setting)
-    #"touhou 1girl komeiji_koishi portrait, green hair", # waifu diffusion prompts can use danbooru tag groups (see model_checkpoint)
-    #"this prompt has weights if prompt weighting enabled:2 can also do negative:-2", # (see prompt_weighting)
-]
+# conditional (postitive) prompts
+cond_prompts = {
+    0: "a beautiful lake by Asher Brown Durand, trending on Artstation",
+    20: "a beautiful portrait of a woman by Artgerm, trending on Artstation",
+}
 
-animation_prompts = {
-    0: "a beautiful apple, trending on Artstation",
-    20: "a beautiful banana, trending on Artstation",
-    30: "a beautiful coconut, trending on Artstation",
-    40: "a beautiful durian, trending on Artstation",
+# unconditional (negative) prompts
+uncond_prompts = {
+    0: "mountain",
+    20: "",
 }
 
 # %%
@@ -270,13 +266,9 @@ def DeforumArgs():
     save_sample_per_step = False #@param {type:"boolean"}
     show_sample_per_step = False #@param {type:"boolean"}
 
-    #@markdown **Prompt Settings**
-    prompt_weighting = True #@param {type:"boolean"}
-    normalize_prompt_weights = True #@param {type:"boolean"}
-    log_weighted_subprompts = False #@param {type:"boolean"}
-
     #@markdown **Batch Settings**
     n_batch = 1 #@param
+    n_samples = 1 #@param
     batch_name = "StableFun" #@param {type:"string"}
     filename_format = "{timestring}_{index}_{prompt}.png" #@param ["{timestring}_{index}_{seed}.png","{timestring}_{index}_{prompt}.png"]
     seed_behavior = "iter" #@param ["iter","fixed","random","ladder","alternate"]
@@ -287,7 +279,7 @@ def DeforumArgs():
 
     #@markdown **Init Settings**
     use_init = False #@param {type:"boolean"}
-    strength = 0.1 #@param {type:"number"}
+    strength = 0.65 #@param {type:"number"}
     strength_0_no_init = True # Set the strength to 0 automatically when no init image is used
     init_image = "https://cdn.pixabay.com/photo/2022/07/30/13/10/green-longhorn-beetle-7353749_1280.jpg" #@param {type:"string"}
     # Whiter areas of the mask are areas that change more
@@ -325,7 +317,6 @@ def DeforumArgs():
     #@markdown **Other Conditional Settings**
     init_mse_scale = 0 #@param {type:"number"}
     init_mse_image = "https://cdn.pixabay.com/photo/2022/07/30/13/10/green-longhorn-beetle-7353749_1280.jpg" #@param {type:"string"}
-
     blue_scale = 0 #@param {type:"number"}
     
     #@markdown **Conditional Gradient Settings**
@@ -340,13 +331,14 @@ def DeforumArgs():
 
     #@markdown **Speed vs VRAM Settings**
     cond_uncond_sync = True #@param {type:"boolean"}
-
-    n_samples = 1 # doesnt do anything
     precision = 'autocast' 
     C = 4
     f = 8
 
-    prompt = ""
+    cond_prompt = ""
+    cond_prompts = ""
+    uncond_prompt = ""
+    uncond_prompts = ""
     timestring = ""
     init_latent = None
     init_sample = None
@@ -396,13 +388,13 @@ torch.cuda.empty_cache()
 
 # dispatch to appropriate renderer
 if anim_args.animation_mode == '2D' or anim_args.animation_mode == '3D':
-    render_animation(args, anim_args, animation_prompts, root)
+    render_animation(root, anim_args, args, cond_prompts, uncond_prompts)
 elif anim_args.animation_mode == 'Video Input':
-    render_input_video(args, anim_args, animation_prompts, root)
+    render_input_video(root, anim_args, args, cond_prompts, uncond_prompts)
 elif anim_args.animation_mode == 'Interpolation':
-    render_interpolation(args, anim_args, animation_prompts, root)
+    render_interpolation(root, anim_args, args, cond_prompts, uncond_prompts)
 else:
-    render_image_batch(args, prompts, root)
+    render_image_batch(root, args, cond_prompts, uncond_prompts)
 
 # %%
 # !! {"metadata":{
