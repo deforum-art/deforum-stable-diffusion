@@ -102,9 +102,9 @@ from helpers.aesthetics import load_aesthetics_model
 #@markdown **Path Setup**
 
 def Root():
-    models_path = "../models" #@param {type:"string"}
+    models_path = "models" #@param {type:"string"}
     configs_path = "configs" #@param {type:"string"}
-    output_path = "../outputs" #@param {type:"string"}
+    output_path = "outputs" #@param {type:"string"}
     mount_google_drive = True #@param {type:"boolean"}
     models_path_gdrive = "/content/drive/MyDrive/AI/models" #@param {type:"string"}
     output_path_gdrive = "/content/drive/MyDrive/AI/StableDiffusion" #@param {type:"string"}
