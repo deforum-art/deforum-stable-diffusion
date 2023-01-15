@@ -88,6 +88,11 @@ def load_model(root, load_on_run_all=True, check_sha256=True, map_location="cuda
         path_extend = ""
 
     model_map = {
+        "Protogen_V2.2.ckpt": {
+            'sha256': 'bb725eaf2ed90092e68b892a1d6262f538131a7ec6a736e50ae534be6b5bd7b1',
+            'url': "https://huggingface.co/darkstorm2150/Protogen_v2.2_Official_Release/resolve/main/Protogen_V2.2.ckpt",
+            'requires_login': False,
+        },
         "v2-1_768-ema-pruned.ckpt": {
             'sha256': 'ad2a33c361c1f593c4a1fb32ea81afce2b5bb7d1983c6b94793a26a3b54b08a0',
             'url': 'https://huggingface.co/stabilityai/stable-diffusion-2-1/resolve/main/v2-1_768-ema-pruned.ckpt',
@@ -174,11 +179,12 @@ def load_model(root, load_on_run_all=True, check_sha256=True, map_location="cuda
     ckpt_config_path = root.custom_config_path if root.model_config == "custom" else os.path.join(root.configs_path, root.model_config)
 
     if os.path.exists(ckpt_config_path):
-        print(f"{ckpt_config_path} exists")
+        pass
+        #print(f"{ckpt_config_path} exists")
     else:
-        print(f"Warning: {ckpt_config_path} does not exist.")
+        #print(f"Warning: {ckpt_config_path} does not exist.")
         ckpt_config_path = os.path.join(path_extend,"configs",root.model_config)
-        print(f"Using {ckpt_config_path} instead.")
+        #print(f"Using {ckpt_config_path} instead.")
         
     ckpt_config_path = os.path.abspath(ckpt_config_path)
 
