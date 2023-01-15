@@ -179,7 +179,8 @@ def load_model(root, load_on_run_all=True, check_sha256=True, map_location="cuda
     ckpt_config_path = root.custom_config_path if root.model_config == "custom" else os.path.join(root.configs_path, root.model_config)
 
     if os.path.exists(ckpt_config_path):
-        print(f"{ckpt_config_path} exists")
+        pass
+        #print(f"{ckpt_config_path} exists")
     else:
         #print(f"Warning: {ckpt_config_path} does not exist.")
         ckpt_config_path = os.path.join(path_extend,"configs",root.model_config)
