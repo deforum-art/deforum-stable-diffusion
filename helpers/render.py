@@ -80,6 +80,13 @@ def render_image_batch(root, args, cond_prompts, uncond_prompts):
     # convert prompt dict to list
     cond_prompts = [value for key, value in cond_prompts.items()]
     uncond_prompts = [value for key, value in uncond_prompts.items()]
+    
+    # check that the prompt lists are the same length repeat last element if not
+    if len(cond_prompts) > len(uncond_prompts):
+        uncond_prompts += [uncond_prompts[-1]] * (len(cond_prompts) - len(uncond_prompts))
+    if len(uncond_prompts) > len(cond_prompts):
+        uncond_prompts = uncond_prompts[:len(cond_prompts)]
+
     args.cond_prompts = {k: f"{v:05d}" for v, k in enumerate(cond_prompts)}
     args.uncond_prompts = {k: f"{v:05d}" for v, k in enumerate(uncond_prompts)}
 
@@ -121,10 +128,10 @@ def render_image_batch(root, args, cond_prompts, uncond_prompts):
     # when doing large batches don't flood browser with images
     clear_between_batches = args.n_batch >= 32
 
-    for iprompt, prompt in enumerate(cond_prompts):
-        args.cond_prompt = prompt
-        args.uncond_prompt = uncond_prompts[iprompt]
-        args.clip_prompt = prompt
+    for iprompt, (cond_prompt, uncond_prompt) in enumerate(zip(cond_prompts,uncond_prompts)):
+        args.cond_prompt = cond_prompt
+        args.uncond_prompt = uncond_prompt
+        args.clip_prompt = cond_prompt
         print(f"Prompt {iprompt+1} of {len(cond_prompts)}")
         print(f"cond_prompt: {args.cond_prompt}")
         print(f"uncond_prompt: {args.uncond_prompt}")
@@ -144,7 +151,7 @@ def render_image_batch(root, args, cond_prompts, uncond_prompts):
                         all_images.append(T.functional.pil_to_tensor(image))
                     if args.save_samples:
                         if args.filename_format == "{timestring}_{index}_{prompt}.png":
-                            filename = f"{args.timestring}_{index:05}_{sanitize(prompt)[:160]}.png"
+                            filename = f"{args.timestring}_{index:05}_{sanitize(cond_prompt)[:160]}.png"
                         else:
                             filename = f"{args.timestring}_{index:05}_{args.seed}.png"
                         save_8_16_or_32bpc_image(image, args.outdir, filename, args.bit_depth_output)
