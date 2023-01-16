@@ -78,7 +78,7 @@ def install_requirements():
     ]
 
     windows_xformers = [
-        "https://huggingface.co/deforum/xformers/blob/main/windows/xformers-0.0.15.dev0fd21b40.d20230107-cp310-cp310-win_amd64.whl",
+        "https://huggingface.co/deforum/xformers/resolve/main/windows/xformers-0.0.15.dev0fd21b40.d20230107-cp310-cp310-win_amd64.whl",
     ]
 
     xformers = windows_xformers if os_system == 'Windows' else linux_xformers
