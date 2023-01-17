@@ -86,6 +86,7 @@ setup_environment()
 import torch
 import random
 import clip
+import cv2
 from IPython import display
 from types import SimpleNamespace
 from helpers.save_images import get_output_folder
@@ -425,6 +426,7 @@ image_path = "/content/drive/MyDrive/AI/StableDiffusion/2023-01/StableFun/202301
 mp4_path = "/content/drive/MyDrive/AI/StableDiffusion/2023-01/StableFun/20230101212135.mp4" #@param {type:"string"}
 render_steps = False  #@param {type: 'boolean'}
 path_name_modifier = "x0_pred" #@param ["x0_pred","x"]
+make_patrol_cycle = False
 make_gif = False
 bitdepth_extension = "exr" if args.bit_depth_output == 32 else "png"
 
@@ -480,6 +482,29 @@ else:
     mp4 = open(mp4_path,'rb').read()
     data_url = "data:video/mp4;base64," + b64encode(mp4).decode()
     display.display(display.HTML(f'<video controls loop><source src="{data_url}" type="video/mp4"></video>') )
+    
+    if make_patrol_cycle:
+        cap = cv2.VideoCapture(mp4_path)
+        frames = []
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            frames.append(frame)    
+        # Reverse the frames
+        reversed_frames = frames[::-1]    
+        # Append the original frames to the reversed frames
+        frames = frames + reversed_frames
+        # Create a video writer object
+        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+        pc_mp4_path = mp4_path.replace(".mp4", "_patrolcycle.mp4")
+        out = cv2.VideoWriter(pc_mp4_path, fourcc, float(fps), (args.W, args.H), isColor=True)
+        # Write the frames to the output video
+        for frame in frames:
+            out.write(frame)
+        # Release the video writer and capture objects
+        out.release()
+        cap.release()
     
     if make_gif:
          gif_path = os.path.splitext(mp4_path)[0]+'.gif'
