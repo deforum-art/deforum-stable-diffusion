@@ -407,7 +407,13 @@ def render_animation(args, anim_args, animation_prompts, root):
             print(f"Angle: {keys.angle_series[frame_idx]} Zoom: {keys.zoom_series[frame_idx]}")
             print(f"Tx: {keys.translation_x_series[frame_idx]} Ty: {keys.translation_y_series[frame_idx]} Tz: {keys.translation_z_series[frame_idx]}")
             print(f"Rx: {keys.rotation_3d_x_series[frame_idx]} Ry: {keys.rotation_3d_y_series[frame_idx]} Rz: {keys.rotation_3d_z_series[frame_idx]}")
-
+            print(f"noise:  {keys.noise_schedule_series[frame_idx]}")
+            print(f"Strength:  {keys.strength_schedule_series[frame_idx]}")
+            print(f"Contrast:  {keys.contrast_schedule_series[frame_idx]}")
+            print(f"Kernel:  {int(keys.kernel_schedule_series[frame_idx])}")
+            print(f"Sigma:  {keys.sigma_schedule_series[frame_idx]}")
+            print(f"Amount:  {keys.amount_schedule_series[frame_idx]}")
+            print(f"Threshold:  {keys.threshold_schedule_series[frame_idx]}")
         # grab init image for current frame
         if using_vid_init:
             init_frame = os.path.join(args.outdir, 'inputframes', f"{frame_idx+1:05}.jpg")            
