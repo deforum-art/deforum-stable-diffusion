@@ -40,22 +40,9 @@ def vid2frames(video_path, frames_path, n=1, overwrite=True):
         except:
             pass
         assert os.path.exists(video_path), f"Video input {video_path} does not exist"
-          
-        vidcap = cv2.VideoCapture(video_path)
-        print(vidcap.isOpened())
-        while vidcap.isOpened():
-            success,image = vidcap.read()
-            print(success, image, video_path)
-            count = 0
-            t=1
-            success = True
-            while success:
-                if count % n == 0:
-                    cv2.imwrite(frames_path + os.path.sep + f"{t:05}.jpg" , image)     # save frame as JPEG file
-                    t += 1
-                success,image = vidcap.read()
-                count += 1
-        print("Converted %d frames" % count)
+
+        import subprocess
+        result = subprocess.run(["ffmpeg", "-i", video_path, "-r", "1/"+str(n), frames_path + "/%05d.jpg"], stdout=subprocess.PIPE)
     else: print("Frames already unpacked")
 
 # https://en.wikipedia.org/wiki/Rotation_matrix
