@@ -9,6 +9,7 @@ import re
 import pathlib
 import os
 import pandas as pd
+import subprocess
 
 def check_is_number(value):
     float_pattern = r'^(?=.)([+-]?([0-9]*)(\.([0-9]+))?)$'
@@ -41,7 +42,6 @@ def vid2frames(video_path, frames_path, n=1, overwrite=True):
             pass
         assert os.path.exists(video_path), f"Video input {video_path} does not exist"
 
-        import subprocess
         subprocess.run(["ffmpeg", "-i", video_path, "-vf", f"select=not(mod(n\,{n}))", "-vsync","vfr", frames_path + "/%05d.jpg"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     else: print("Frames already unpacked")
 
