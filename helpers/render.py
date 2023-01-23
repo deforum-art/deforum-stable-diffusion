@@ -525,7 +525,6 @@ def render_interpolation(args, anim_args, animation_prompts, root):
             if dist_frames <= 0:
                 print("key frames duplicated or reversed. interpolation skipped.")
                 return
-        else:
             for j in range(dist_frames):
                 # interpolate the text embedding
                 prompt1_c = prompts_c_s[i]
