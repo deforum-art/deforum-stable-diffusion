@@ -43,6 +43,7 @@ def vid2frames(video_path, frames_path, n=1, overwrite=True):
           
         vidcap = cv2.VideoCapture(video_path)
         success,image = vidcap.read()
+        print(success, image, video_path)
         count = 0
         t=1
         success = True
