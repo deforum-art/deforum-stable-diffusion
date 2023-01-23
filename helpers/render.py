@@ -379,7 +379,7 @@ def render_animation(args, anim_args, animation_prompts, root):
                     video_color_coherence_frame = int(frame_idx) % int(anim_args.color_coherence_video_every_N_frames) == 0
                     if video_color_coherence_frame:
                         prev_vid_img = Image.open(os.path.join(args.outdir, 'inputframes', f"{frame_idx:05}.jpg"))
-                        prev_vid_img = prev_vid_img.resize((args.W, args.H), Image.Resampling.LANCZOS)
+                        prev_vid_img = prev_vid_img.resize((args.W, args.H), Image.LANCZOS)
                         color_match_sample = np.asarray(prev_vid_img)
                 if color_match_sample is None:
                     color_match_sample = prev_img.copy()
@@ -643,7 +643,7 @@ def render_animation_hybrid_composite(args, anim_args, frame_idx, prev_img, dept
     prev_frame = os.path.join(args.outdir, 'hybridframes', f"prev{frame_idx:05}.jpg")
     prev_img_hybrid = Image.fromarray(prev_img)       
     video_image = Image.open(video_frame)
-    video_image = video_image.resize((args.W, args.H), Image.Resampling.LANCZOS)
+    video_image = video_image.resize((args.W, args.H), Image.LANCZOS)
     hybrid_mask = None
 
     # composite mask types
