@@ -42,7 +42,7 @@ def vid2frames(video_path, frames_path, n=1, overwrite=True):
         assert os.path.exists(video_path), f"Video input {video_path} does not exist"
 
         import subprocess
-        result = subprocess.run(["ffmpeg", "-i", video_path, "-vf", f"select=not(mod(n,{n}))", "-vsync","vfr", frames_path + "/%05d.jpg"])
+        result = subprocess.run(["ffmpeg", "-i", video_path, "-vf", f"select=not(mod(n\,{n}))", "-vsync","vfr", frames_path + "/%05d.jpg"])
         print(result.stdout)
     else: print("Frames already unpacked")
 
