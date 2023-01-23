@@ -9,6 +9,7 @@ import re
 import pathlib
 import os
 import pandas as pd
+import subprocess
 
 def check_is_number(value):
     float_pattern = r'^(?=.)([+-]?([0-9]*)(\.([0-9]+))?)$'
@@ -40,19 +41,8 @@ def vid2frames(video_path, frames_path, n=1, overwrite=True):
         except:
             pass
         assert os.path.exists(video_path), f"Video input {video_path} does not exist"
-          
-        vidcap = cv2.VideoCapture(video_path)
-        success,image = vidcap.read()
-        count = 0
-        t=1
-        success = True
-        while success:
-            if count % n == 0:
-                cv2.imwrite(frames_path + os.path.sep + f"{t:05}.jpg" , image)     # save frame as JPEG file
-                t += 1
-            success,image = vidcap.read()
-            count += 1
-        print("Converted %d frames" % count)
+
+        subprocess.run(["ffmpeg", "-i", video_path, "-vf", f"select=not(mod(n\,{n}))", "-vsync","vfr", frames_path + "/%05d.jpg"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     else: print("Frames already unpacked")
 
 # https://en.wikipedia.org/wiki/Rotation_matrix
