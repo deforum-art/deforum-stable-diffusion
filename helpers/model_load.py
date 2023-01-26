@@ -5,17 +5,7 @@ from tqdm import tqdm
 import requests
 
 #from memory_profiler import profile
-class Embedding:
-    def __init__(self, vec, name, step=None):
-        self.vec = vec
-        self.name = name
-        self.step = step
-        self.shape = None
-        self.vectors = 0
-        self.cached_checksum = None
-        self.sd_checkpoint = None
-        self.sd_checkpoint_name = None
-        self.optimizer_state_dict = None
+
 # Decodes the image without passing through the upscaler. The resulting image will be the same size as the latent
 # Thanks to Kevin Turner (https://github.com/keturn) we have a shortcut to look at the decoded image!
 def make_linear_decode(model_version, device='cuda:0'):
