@@ -75,22 +75,8 @@ def next_seed(args):
         args.seed = random.randint(0, 2**32 - 1)
     return args.seed
 
-def render_image_batch(root, args, cond_prompts, uncond_prompts):
-
-    # convert prompt dict to list
-    cond_prompts = [value for key, value in cond_prompts.items()]
-    uncond_prompts = [value for key, value in uncond_prompts.items()]
-    
-    # check that the prompt lists are the same length repeat last element if not
-    if len(cond_prompts) > len(uncond_prompts):
-        uncond_prompts += [uncond_prompts[-1]] * (len(cond_prompts) - len(uncond_prompts))
-    if len(uncond_prompts) > len(cond_prompts):
-        uncond_prompts = uncond_prompts[:len(cond_prompts)]
-
-    args.cond_prompts = {k: f"{v:05d}" for v, k in enumerate(cond_prompts)}
-    args.uncond_prompts = {k: f"{v:05d}" for v, k in enumerate(uncond_prompts)}
-
-    # set vid init to False
+def render_image_batch(args, prompts, root):
+    args.prompts = {k: f"{v:05d}" for v, k in enumerate(prompts)}
     args.using_vid_init = False
     
     # create output folder for the batch
@@ -104,7 +90,6 @@ def render_image_batch(root, args, cond_prompts, uncond_prompts):
         with open(filename, "w+", encoding="utf-8") as f:
             json.dump(dict(args.__dict__), f, ensure_ascii=False, indent=4)
 
-    # set
     index = 0
     
     # function for init image batching
@@ -128,13 +113,11 @@ def render_image_batch(root, args, cond_prompts, uncond_prompts):
     # when doing large batches don't flood browser with images
     clear_between_batches = args.n_batch >= 32
 
-    for iprompt, (cond_prompt, uncond_prompt) in enumerate(zip(cond_prompts,uncond_prompts)):
-        args.cond_prompt = cond_prompt
-        args.uncond_prompt = uncond_prompt
-        args.clip_prompt = cond_prompt
-        print(f"Prompt {iprompt+1} of {len(cond_prompts)}")
-        print(f"cond_prompt: {args.cond_prompt}")
-        print(f"uncond_prompt: {args.uncond_prompt}")
+    for iprompt, prompt in enumerate(prompts):  
+        args.prompt = prompt
+        args.clip_prompt = prompt
+        print(f"Prompt {iprompt+1} of {len(prompts)}")
+        print(f"{args.prompt}")
 
         all_images = []
 
@@ -151,7 +134,7 @@ def render_image_batch(root, args, cond_prompts, uncond_prompts):
                         all_images.append(T.functional.pil_to_tensor(image))
                     if args.save_samples:
                         if args.filename_format == "{timestring}_{index}_{prompt}.png":
-                            filename = f"{args.timestring}_{index:05}_{sanitize(cond_prompt)[:160]}.png"
+                            filename = f"{args.timestring}_{index:05}_{sanitize(prompt)[:160]}.png"
                         else:
                             filename = f"{args.timestring}_{index:05}_{args.seed}.png"
                         save_8_16_or_32bpc_image(image, args.outdir, filename, args.bit_depth_output)
@@ -172,7 +155,6 @@ def render_image_batch(root, args, cond_prompts, uncond_prompts):
             display.clear_output(wait=True)            
             display.display(grid_image)
 
-
 def unsharp_mask(img, kernel_size=(5, 5), sigma=1.0, amount=1.0, threshold=0):
     """Return a sharpened version of the image, using an unsharp mask."""
     blurred = cv2.GaussianBlur(img, kernel_size, sigma)
@@ -186,7 +168,7 @@ def unsharp_mask(img, kernel_size=(5, 5), sigma=1.0, amount=1.0, threshold=0):
     return sharpened
 
 
-def render_animation(root, anim_args, args, cond_prompts, uncond_prompts):
+def render_animation(args, anim_args, animation_prompts, root):
     # handle hybrid video generation
     if anim_args.animation_mode in ['2D','3D']:
         if anim_args.hybrid_video_composite or anim_args.hybrid_video_motion in ['Affine', 'Perspective', 'Optical Flow']:
@@ -195,8 +177,7 @@ def render_animation(root, anim_args, args, cond_prompts, uncond_prompts):
             hybrid_frame_path = os.path.join(args.outdir, 'hybridframes')
 
     # animations use key framed prompts
-    args.cond_prompts = cond_prompts
-    args.uncond_prompts = uncond_prompts
+    args.prompts = animation_prompts
 
     # expand key frame strings to values
     keys = DeformAnimKeys(anim_args)
@@ -225,17 +206,11 @@ def render_animation(root, anim_args, args, cond_prompts, uncond_prompts):
     if anim_args.resume_from_timestring:
         args.timestring = anim_args.resume_timestring
 
-    # expand cond prompts out to per-frame
-    cond_prompt_series = pd.Series([np.nan for a in range(anim_args.max_frames)])
-    for i, prompt in cond_prompts.items():
-        cond_prompt_series[int(i)] = prompt
-    cond_prompt_series = cond_prompt_series.ffill().bfill()
-
-    # expand uncond prompts out to per-frame
-    uncond_prompt_series = pd.Series([np.nan for a in range(anim_args.max_frames)])
-    for i, prompt in uncond_prompts.items():
-        uncond_prompt_series[int(i)] = prompt
-    uncond_prompt_series = uncond_prompt_series.ffill().bfill()
+    # expand prompts out to per-frame
+    prompt_series = pd.Series([np.nan for a in range(anim_args.max_frames)])
+    for i, prompt in animation_prompts.items():
+        prompt_series[int(i)] = prompt
+    prompt_series = prompt_series.ffill().bfill()
 
     # check for video inits
     using_vid_init = anim_args.animation_mode == 'Video Input'
@@ -425,18 +400,20 @@ def render_animation(root, anim_args, args, cond_prompts, uncond_prompts):
             args.strength = max(0.0, min(1.0, strength))
 
         # grab prompt for current frame
-        args.cond_prompt = cond_prompt_series[frame_idx]
-        args.uncond_prompt = uncond_prompt_series[frame_idx]
-        args.clip_prompt = cond_prompt_series[frame_idx]
-        print(f"seed: {args.seed}")
-        print(f"cond_prompt: {args.cond_prompt}")
-        print(f"uncond_prompt: {args.uncond_prompt}")
-
+        args.prompt = prompt_series[frame_idx]
+        args.clip_prompt = args.prompt
+        print(f"{args.prompt} {args.seed}")
         if not using_vid_init:
             print(f"Angle: {keys.angle_series[frame_idx]} Zoom: {keys.zoom_series[frame_idx]}")
             print(f"Tx: {keys.translation_x_series[frame_idx]} Ty: {keys.translation_y_series[frame_idx]} Tz: {keys.translation_z_series[frame_idx]}")
             print(f"Rx: {keys.rotation_3d_x_series[frame_idx]} Ry: {keys.rotation_3d_y_series[frame_idx]} Rz: {keys.rotation_3d_z_series[frame_idx]}")
-
+            print(f"noise = {keys.noise_schedule_series[frame_idx]}")
+            print(f"strength = {keys.strength_schedule_series[frame_idx]}")
+            print(f"contrast = {keys.contrast_schedule_series[frame_idx]}")
+            print(f"kernel = int({keys.kernel_schedule_series[frame_idx]})")
+            print(f"sigma = {keys.sigma_schedule_series[frame_idx]}")
+            print(f"amount = {keys.amount_schedule_series[frame_idx]}")
+            print(f"threshold = {keys.threshold_schedule_series[frame_idx]}")
         # grab init image for current frame
         if using_vid_init:
             init_frame = os.path.join(args.outdir, 'inputframes', f"{frame_idx+1:05}.jpg")            
@@ -448,7 +425,6 @@ def render_animation(root, anim_args, args, cond_prompts, uncond_prompts):
 
         # sample the diffusion model
         sample, image = generate(args, root, frame_idx, return_latent=False, return_sample=True)
-        
         # First image sample used for masking
         if not using_vid_init:
             prev_sample = sample
