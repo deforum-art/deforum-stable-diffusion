@@ -410,6 +410,7 @@ else:
 # !!   "cellView": "form",
 # !!   "id": "XQGeqaGAWM_v"
 # !! }}
+#@markdown **Legacy Version**
 skip_video_for_run_all = True #@param {type: 'boolean'}
 fps = 12 #@param {type:"number"}
 #@markdown **Manual Settings**
@@ -484,6 +485,45 @@ else:
              gif_path
          ]
          process_gif = subprocess.Popen(cmd_gif, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+# %%
+# !! {"metadata":{
+# !!   "cellView": "form",
+# !!   "id": "YDoi7at9avqC"
+# !! }}
+#@markdown **Alternative Version**
+skip_video_for_run_all = True #@param {type: 'boolean'}
+
+if skip_video_for_run_all == True:
+    print('Skipping video creation, uncheck skip_video_for_run_all if you want to run it')
+else:
+
+    from helpers.ffmpeg_helpers import get_extension_maxframes, get_auto_outdir_timestring, get_ffmpeg_path, make_mp4_ffmpeg, make_gif_ffmpeg, patrol_cycle
+
+    def ffmpegArgs():
+        ffmpeg_mode = "auto" #@param ["auto","manual","timestring"]
+        ffmpeg_outdir = "" #@param {type:"string"}
+        ffmpeg_timestring = "" #@param {type:"string"}
+        ffmpeg_image_path = "" #@param {type:"string"}
+        ffmpeg_mp4_path = "" #@param {type:"string"}
+        ffmpeg_gif_path = "" #@param {type:"string"}
+        ffmpeg_extension = "png" #@param {type:"string"}
+        ffmpeg_maxframes = 200 #@param
+        ffmpeg_fps = 12 #@param
+
+        # determine auto paths
+        if ffmpeg_mode == 'auto':
+            ffmpeg_outdir, ffmpeg_timestring = get_auto_outdir_timestring(args,ffmpeg_mode)
+        if ffmpeg_mode in ["auto","timestring"]:
+            ffmpeg_extension, ffmpeg_maxframes = get_extension_maxframes(args,ffmpeg_outdir,ffmpeg_timestring)
+            ffmpeg_image_path, ffmpeg_mp4_path, ffmpeg_gif_path = get_ffmpeg_path(ffmpeg_outdir, ffmpeg_timestring, ffmpeg_extension)
+        return locals()
+
+    ffmpeg_args_dict = ffmpegArgs()
+    ffmpeg_args = SimpleNamespace(**ffmpeg_args_dict)
+    make_mp4_ffmpeg(ffmpeg_args, display_ffmpeg=False, debug=True)
+    make_gif_ffmpeg(ffmpeg_args, debug=True)
+    #patrol_cycle(args,ffmpeg_args)
 
 # %%
 # !! {"metadata":{
