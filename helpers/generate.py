@@ -61,6 +61,8 @@ def generate(args, root, frame=0, return_latent=False, return_sample=False, retu
         init_image, mask_image = load_img(args.init_image, 
                                           shape=(args.W, args.H),  
                                           use_alpha_as_mask=args.use_alpha_as_mask)
+        if args.add_init_noise:
+            init_image = add_noise(init_image,args.init_noise)
         init_image = init_image.to(root.device)
         init_image = repeat(init_image, '1 ... -> b ...', b=batch_size)
         with precision_scope("cuda"):
