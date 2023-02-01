@@ -157,11 +157,11 @@ def DeforumAnimArgs():
     noise_schedule = "0: (0.02)"#@param {type:"string"}
     strength_schedule = "0: (0.65)"#@param {type:"string"}
     contrast_schedule = "0: (1.0)"#@param {type:"string"}
-    hybrid_video_comp_alpha_schedule = "0:(1)" #@param {type:"string"}
-    hybrid_video_comp_mask_blend_alpha_schedule = "0:(0.5)" #@param {type:"string"}
-    hybrid_video_comp_mask_contrast_schedule = "0:(1)" #@param {type:"string"}
-    hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule =  "0:(100)" #@param {type:"string"}
-    hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule =  "0:(0)" #@param {type:"string"}
+    hybrid_comp_alpha_schedule = "0:(1)" #@param {type:"string"}
+    hybrid_comp_mask_blend_alpha_schedule = "0:(0.5)" #@param {type:"string"}
+    hybrid_comp_mask_contrast_schedule = "0:(1)" #@param {type:"string"}
+    hybrid_comp_mask_auto_contrast_cutoff_high_schedule =  "0:(100)" #@param {type:"string"}
+    hybrid_comp_mask_auto_contrast_cutoff_low_schedule =  "0:(0)" #@param {type:"string"}
 
     #@markdown ####**Sampler Scheduling:**
     enable_schedule_samplers = False #@param {type:"boolean"}
@@ -176,6 +176,7 @@ def DeforumAnimArgs():
     #@markdown ####**Coherence:**
     color_coherence = 'Match Frame 0 LAB' #@param ['None', 'Match Frame 0 HSV', 'Match Frame 0 LAB', 'Match Frame 0 RGB', 'Video Input'] {type:'string'}
     color_coherence_video_every_N_frames = 1 #@param {type:"integer"}
+    color_force_grayscale = False #@param {type:"boolean"}
     diffusion_cadence = '1' #@param ['1','2','3','4','5','6','7','8'] {type:'string'}
 
     #@markdown ####**3D Depth Warping:**
@@ -196,17 +197,18 @@ def DeforumAnimArgs():
     video_mask_path ='/content/video_in.mp4'#@param {type:"string"}
 
     #@markdown ####**Hybrid Video for 2D/3D Animation Mode:**
-    hybrid_video_generate_inputframes = False #@param {type:"boolean"}
-    hybrid_video_use_first_frame_as_init_image = True #@param {type:"boolean"}
-    hybrid_video_motion = "None" #@param ['None','Optical Flow','Perspective','Affine']
-    hybrid_video_flow_method = "Farneback" #@param ['Farneback','DenseRLOF','SF']
-    hybrid_video_composite = False #@param {type:"boolean"}
-    hybrid_video_comp_mask_type = "None" #@param ['None', 'Depth', 'Video Depth', 'Blend', 'Difference']
-    hybrid_video_comp_mask_inverse = False #@param {type:"boolean"}
-    hybrid_video_comp_mask_equalize = "None" #@param  ['None','Before','After','Both']
-    hybrid_video_comp_mask_auto_contrast = False #@param {type:"boolean"}
-    hybrid_video_comp_save_extra_frames = False #@param {type:"boolean"}
-    hybrid_video_use_video_as_mse_image = False #@param {type:"boolean"}
+    hybrid_generate_inputframes = False #@param {type:"boolean"}
+    hybrid_use_first_frame_as_init_image = True #@param {type:"boolean"}
+    hybrid_motion = "None" #@param ['None','Optical Flow','Perspective','Affine']
+    hybrid_motion_use_prev_img = False #@param {type:"boolean"}
+    hybrid_flow_method = "DIS Medium" #@param ['DenseRLOF','DIS Medium','Farneback','SF']
+    hybrid_composite = False #@param {type:"boolean"}
+    hybrid_comp_mask_type = "None" #@param ['None', 'Depth', 'Video Depth', 'Blend', 'Difference']
+    hybrid_comp_mask_inverse = False #@param {type:"boolean"}
+    hybrid_comp_mask_equalize = "None" #@param  ['None','Before','After','Both']
+    hybrid_comp_mask_auto_contrast = False #@param {type:"boolean"}
+    hybrid_comp_save_extra_frames = False #@param {type:"boolean"}
+    hybrid_use_video_as_mse_image = False #@param {type:"boolean"}
 
     #@markdown ####**Interpolation:**
     interpolate_key_frames = False #@param {type:"boolean"}

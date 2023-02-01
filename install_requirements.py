@@ -56,7 +56,7 @@ def install_requirements():
         "notebook",
         "numexpr",
         "omegaconf",
-        "opencv-python",
+        "opencv-contrib-python",
         "pandas",
         "pytorch_lightning==1.7.7",
         "resize-right",
