@@ -297,6 +297,9 @@ def render_animation(root, anim_args, args, cond_prompts, uncond_prompts):
             "mask_auto_contrast_cutoff_low": int(keys.hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule_series[frame_idx]),
             "mask_auto_contrast_cutoff_high": int(keys.hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule_series[frame_idx]),
         }
+        sampler_name = None
+        if anim_args.enable_schedule_samplers:
+            sampler_name = keys.sampler_schedule_series[frame_idx]
         depth = None
         
         # emit in-between frames
@@ -432,7 +435,15 @@ def render_animation(root, anim_args, args, cond_prompts, uncond_prompts):
         print(f"cond_prompt: {args.cond_prompt}")
         print(f"uncond_prompt: {args.uncond_prompt}")
 
+        # assign sampler_name to args.sampler
+        available_samplers = ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral", "dpm_fast", "dpm_adaptive", "dpmpp_2s_a", "dpmpp_2m"]
+        if sampler_name is not None:
+            if sampler_name in available_samplers:
+                args.sampler = sampler_name
+
+        # print run info
         if not using_vid_init:
+            print(f"Sampler: {args.sampler}")
             print(f"Angle: {keys.angle_series[frame_idx]} Zoom: {keys.zoom_series[frame_idx]}")
             print(f"Tx: {keys.translation_x_series[frame_idx]} Ty: {keys.translation_y_series[frame_idx]} Tz: {keys.translation_z_series[frame_idx]}")
             print(f"Rx: {keys.rotation_3d_x_series[frame_idx]} Ry: {keys.rotation_3d_y_series[frame_idx]} Rz: {keys.rotation_3d_z_series[frame_idx]}")
