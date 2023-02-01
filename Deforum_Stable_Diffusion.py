@@ -176,8 +176,7 @@ def DeforumAnimArgs():
     #@markdown ####**Coherence:**
     color_coherence = 'Match Frame 0 LAB' #@param ['None', 'Match Frame 0 HSV', 'Match Frame 0 LAB', 'Match Frame 0 RGB', 'Video Input'] {type:'string'}
     color_coherence_video_every_N_frames = 1 #@param {type:"integer"}
-    color_force_grayscale = False #@param {type:"boolean"}
-    diffusion_cadence = '1' #@param ['1','2','3','4','5','6','7','8'] {type:'string'}
+    color_force_grayscale = False #@param {type:"boolean"}    diffusion_cadence = '1' #@param ['1','2','3','4','5','6','7','8'] {type:'string'}
 
     #@markdown ####**3D Depth Warping:**
     use_depth_warping = True #@param {type:"boolean"}
@@ -526,6 +525,14 @@ else:
     make_mp4_ffmpeg(ffmpeg_args, display_ffmpeg=False, debug=True)
     make_gif_ffmpeg(ffmpeg_args, debug=True)
     #patrol_cycle(args,ffmpeg_args)
+
+# %%
+# !! {"metadata":{
+# !!   "id": "8vL8nOkac767"
+# !! }}
+"""
+# Disconnect Runtime
+"""
 
 # %%
 # !! {"metadata":{
