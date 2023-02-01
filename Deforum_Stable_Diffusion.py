@@ -45,9 +45,6 @@ def setup_environment():
         ipy = 'could not get_ipython'
     if 'google.colab' in str(ipy):
         print("..setting up environment")
-
-        # weird hack
-        import torch
         
         all_process = [
             ['pip', 'install', 'omegaconf', 'einops==0.4.1', 'pytorch-lightning==1.7.7', 'torchmetrics', 'transformers', 'safetensors', 'kornia'],
@@ -68,7 +65,7 @@ def setup_environment():
 
             print("..installing triton and xformers")
 
-            all_process = [['pip', 'install', 'triton==2.0.0.dev20221202', 'xformers==0.0.16rc424']]
+            all_process = [['pip', 'install', 'triton==2.0.0.dev20221202', 'xformers==0.0.16']]
             for process in all_process:
                 running = subprocess.run(process,stdout=subprocess.PIPE).stdout.decode('utf-8')
                 if print_subprocess:
