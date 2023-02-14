@@ -27,6 +27,8 @@ Welcome to Deforum Stable Diffusion!
 
 We are a community of programmers and artists who are passionate about making stable diffusion machine learning image synthesis accessible to everyone. Our open source project is designed to be free to use and easy to modify for custom needs and pipelines. We believe in the power of collaboration and are constantly working together to improve and evolve our implementation of stable diffusion. Whether you are an experienced developer or just getting started, we invite you to join us and be a part of this exciting project.
 
+You can now also run Deforum Stable Diffusion easily on Replicate, check out the web demo and the API here [![Replicate](https://replicate.com/deforum-art/deforum-stable-diffusion/badge)](https://replicate.com/deforum-art/deforum-stable-diffusion) 
+
 ## Key Features
 
 - Our implementation is written in an IPython notebook and was designed for use with Google Colab.
