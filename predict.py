@@ -269,8 +269,7 @@ class Predictor(BasePredictor):
                 animation_prompts_dict[int(frame_id)] = prompt
             animation_prompts = OrderedDict(sorted(animation_prompts_dict.items()))
 
-        root = {"device": "cuda"}
-
+        root = {"device": "cuda", "models_path": "models", "configs_path": "configs"}
         if model_checkpoint == self.default_ckpt:
             root["model"] = self.default_model
         else:
@@ -486,8 +485,6 @@ class Predictor(BasePredictor):
             render_input_video(args, anim_args, animation_prompts, root)
         elif anim_args.animation_mode == "Interpolation":
             render_interpolation(args, anim_args, animation_prompts, root)
-        else:
-            render_image_batch(args, prompts, root)
 
         # make video
         image_path = os.path.join(args.outdir, f"{args.timestring}_%05d.png")
