@@ -534,7 +534,7 @@ def render_animation(root, anim_args, args, cond_prompts, uncond_prompts):
 
         args.seed = next_seed(args)
 
-def render_input_video(args, anim_args, animation_prompts, root):
+def render_input_video(root, anim_args, args, cond_prompts, uncond_prompts):
     # create a folder for the video input frames to live in
     video_in_frame_path = os.path.join(args.outdir, 'inputframes') 
     os.makedirs(video_in_frame_path, exist_ok=True)
@@ -559,7 +559,7 @@ def render_input_video(args, anim_args, animation_prompts, root):
         args.use_mask = True
         args.overlay_mask = True
 
-    render_animation(args, anim_args, animation_prompts, root)
+    render_animation(root, anim_args, args, cond_prompts, uncond_prompts)
 
 def render_interpolation(args, anim_args, animation_prompts, root):
     # animations use key framed prompts
