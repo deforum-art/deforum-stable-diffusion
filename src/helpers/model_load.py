@@ -1,7 +1,8 @@
 import os
+
+import requests
 import torch
 from tqdm import tqdm
-import requests
 
 #from memory_profiler import profile
 
@@ -276,7 +277,7 @@ def get_model_output_paths(root):
 
     if 'google.colab' in str(ipy):
         if root.mount_google_drive:
-            from google.colab import drive # type: ignore
+            from google.colab import drive  # type: ignore
             try:
                 drive_path = "/content/drive"
                 drive.mount(drive_path,force_remount=force_remount)
