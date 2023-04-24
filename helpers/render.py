@@ -205,13 +205,16 @@ def render_animation(root, anim_args, args, cond_prompts, uncond_prompts):
 
     # resume animation
     start_frame = 0
+    # create set of present frames
+    frames = {0}
     if anim_args.resume_from_timestring:
         for tmp in os.listdir(args.outdir):
             filename = tmp.split("_")
             # don't use saved depth maps to count number of frames
             if anim_args.resume_timestring in filename and "depth" not in filename:
-                start_frame += 1
-        start_frame = start_frame - 1
+                frame_num = int(tmp.split("_")[-1].split(".")[0])
+                frames.add(frame_num)
+        start_frame = max(frames) - 1
 
     # create output folder for the batch
     os.makedirs(args.outdir, exist_ok=True)
