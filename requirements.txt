@@ -2,17 +2,10 @@ torch
 torchvision
 torchaudio
 clean-fid
-colab-convert
 einops
 ftfy
-ipython
-ipywidgets
 jsonmerge
-jupyterlab
-jupyter_http_over_ws
 kornia
-matplotlib
-notebook
 numexpr
 omegaconf
 opencv-python
