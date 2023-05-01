@@ -9,7 +9,11 @@ import re
 import json
 from jinja2 import Template
 
-pattern = re.compile(r'\s*(\w+)\s*=\s*([^#\n]+)\s*#@param(?:.*type:\s*([\'\"])(\w+)\3)?(?:\s*\[(.*)\])?')
+
+param_pattern = r"^(.*?)#\@param(.*)$"
+variable_pattern = r"^(\w+)\s*=\s*(.*)$"
+type_pattern = r"\{type\s*:\s*['\"](.*)['\"]\}"
+constraints_pattern = r"\[(.*)\]"
 
 COLAB_TO_PYTHON_TYPE_MAP = {
     "string": "str",
@@ -37,6 +41,48 @@ def generate_parameters_file(parameters):
     with open("parameters.py", "w") as output:
         output.write(template.render(objects=parameters, methods=methods))
 
+def extract_from_line(line):
+    """Extracts the variable name, value, type, and constraints from a line of code containing a Colab #@param annotation"""
+    variable_name, variable_value, type, constraints = None, None, None, None
+
+    # break up the line into the variable and the type/constraints
+    match = re.match(param_pattern, line)
+
+    # yep definitely a #@param annotation
+    if match:
+        variable_and_value = match.group(1).strip(' ')
+        type_and_constraint = match.group(2).strip(' ')
+
+        variable_match = re.match(variable_pattern, variable_and_value)
+        if variable_match:
+            variable_name = variable_match.group(1)
+            variable_value = variable_match.group(2).strip('"')
+
+        type_match = re.search(type_pattern, type_and_constraint)
+        if type_match:
+            type = type_match.group(1)
+
+        constraints_match = re.search(constraints_pattern, type_and_constraint)
+        if constraints_match:
+            constraints = constraints_match.group(1)
+
+        # turn constraints into a single string
+        constraints = strip_quotes_from_embedded_list_items(constraints) if constraints else None
+        
+        # rule: if there are constraints, then the type is a string, always even if
+        if constraints and type is not None:
+            type = "string"
+
+        # map colab to python type
+        type = COLAB_TO_PYTHON_TYPE_MAP.get(type, None) if type else None
+
+    else:
+        print("Not a #@param annotation: skipping")
+
+    return variable_name, variable_value, type, constraints
+
+
+
 def extract_colab_params(ipynb_file):
     variables = []
 
@@ -54,24 +100,15 @@ def extract_colab_params(ipynb_file):
                 
                 # if we detect a Google Colab #@param annotation, extract and add it to the list of parameters
                 if "#@param" in line:
-                    match = pattern.match(line)
-                    if match:
-                        variable_name, value, _, var_type, constraints = match.groups()   
-                        value = re.sub(r'^\s*["\']*|["\']*\s*$', '', value)         
-                        constraints = strip_quotes_from_embedded_list_items(constraints) if constraints else None
-                        if constraints:
-                            var_type = "str"
-
-                        # map colab to python type
-                        var_type = COLAB_TO_PYTHON_TYPE_MAP.get(var_type, None)
-                        params.append( {
-                            "method": current_method_name,
-                            "name": variable_name,
-                            "default": value,
-                            "constraints": constraints,
-                            "type": var_type
-                        })
-                        print(f"### {current_method_name}, {variable_name} = '{value}', type = '{var_type}', constraints = '{constraints}'")
+                    variable_name, variable_value, type_value, constraints_value = extract_from_line(line)
+                    params.append( {
+                        "method": current_method_name,
+                        "name": variable_name,
+                        "default": variable_value,
+                        "constraints": constraints_value,
+                        "type": type_value
+                    })
+                    print(f"### {current_method_name}, {variable_name} = '{variable_value}', type = '{type_value}', constraints = '{constraints_value}'")
             variables.extend(params)
 
     # print(f"## extracted {len(variables)} variables from {ipynb_file}")

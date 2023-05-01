@@ -1,0 +1,51 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+torch = "*"
+torchvision = "*"
+torchaudio = "*"
+clean-fid = "*"
+colab-convert = "*"
+einops = "*"
+ftfy = "*"
+ipython = "*"
+ipywidgets = "*"
+jsonmerge = "*"
+jupyterlab = "*"
+jupyter-http-over-ws = "*"
+kornia = "*"
+matplotlib = "*"
+notebook = "*"
+numexpr = "*"
+omegaconf = "*"
+opencv-python = "*"
+pandas = "*"
+pytorch-lightning = "==1.7.7"
+resize-right = "*"
+scikit-image = "*"
+scikit-learn = "*"
+timm = "*"
+torchdiffeq = "*"
+transformers = "==4.19.2"
+safetensors = "*"
+albumentations = "*"
+more-itertools = "*"
+devtools = "*"
+validators = "*"
+numpngw = "*"
+open-clip-torch = "*"
+torchsde = "*"
+ninja = "*"
+triton = {version = "*", markers = "sys_platform == 'linux'"}
+xformers = "*"
+
+[dev-packages]
+pytest = "*"
+jinja2 = "*"
+
+[requires]
+python_version = "3.9"
+python_full_version = "3.9.6"

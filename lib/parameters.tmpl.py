@@ -6,9 +6,7 @@
 # jinja2 template: parameters.tmpl.py
 # example input file: parameters.json
 
-import torch
-
-{% for method in methods -%}
+{% for method in methods -%} 
 class {{ method }}:
 {%- for obj in objects -%}
   {%- if obj.method == method %}

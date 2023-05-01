@@ -1,3 +1,5 @@
+ipython
+matplotlib
 torch
 torchvision
 torchaudio

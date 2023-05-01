@@ -93,7 +93,7 @@ def Root():
     output_path_gdrive = "/content/drive/MyDrive/AI/StableDiffusion" #@param {type:"string"}
 
     #@markdown **Model Setup**
-    map_location = "cuda" if torch.cuda.is_available() else "cpu" #@param ["cpu", "cuda"]
+    map_location = "cuda" #@param ["cpu", "cuda"]
     print( f"map_location: {map_location}" )
     model_config = "v1-inference.yaml" #@param ["custom","v2-inference.yaml","v2-inference-v.yaml","v1-inference.yaml"]
     model_checkpoint =  "Protogen_V2.2.ckpt" #@param ["custom","v2-1_768-ema-pruned.ckpt","v2-1_512-ema-pruned.ckpt","768-v-ema.ckpt","512-base-ema.ckpt","Protogen_V2.2.ckpt","v1-5-pruned.ckpt","v1-5-pruned-emaonly.ckpt","sd-v1-4-full-ema.ckpt","sd-v1-4.ckpt","sd-v1-3-full-ema.ckpt","sd-v1-3.ckpt","sd-v1-2-full-ema.ckpt","sd-v1-2.ckpt","sd-v1-1-full-ema.ckpt","sd-v1-1.ckpt", "robo-diffusion-v1.ckpt","wd-v1-3-float16.ckpt"]
@@ -210,12 +210,13 @@ animation_prompts = {
 }
 
 # %%
-#@markdown **Load Settings**
-override_settings_with_file = False #@param {type:"boolean"}
-settings_file = "custom" #@param ["custom", "512x512_aesthetic_0.json","512x512_aesthetic_1.json","512x512_colormatch_0.json","512x512_colormatch_1.json","512x512_colormatch_2.json","512x512_colormatch_3.json"]
-custom_settings_file = "/content/drive/MyDrive/Settings.txt"#@param {type:"string"}
 
 def DeforumArgs():
+    #@markdown **Custom Settings**
+    override_settings_with_file = False #@param {type:"boolean"}
+    settings_file = "custom" #@param ["custom", "512x512_aesthetic_0.json","512x512_aesthetic_1.json","512x512_colormatch_0.json","512x512_colormatch_1.json","512x512_colormatch_2.json","512x512_colormatch_3.json"]
+    custom_settings_file = "/content/drive/MyDrive/Settings.txt"#@param {type:"string"}
+
     #@markdown **Image Settings**
     W = 512 #@param
     H = 512 #@param
@@ -328,12 +329,12 @@ def DeforumArgs():
 args_dict = DeforumArgs()
 anim_args_dict = DeforumAnimArgs()
 
-if override_settings_with_file:
-    load_args(args_dict, anim_args_dict, settings_file, custom_settings_file, verbose=False)
 
 args = SimpleNamespace(**args_dict)
 anim_args = SimpleNamespace(**anim_args_dict)
 
+if args.override_settings_with_file:
+    load_args(args_dict, anim_args_dict, args.settings_file, args.custom_settings_file, verbose=False)
 args.timestring = time.strftime('%Y%m%d%H%M%S')
 args.strength = max(0.0, min(1.0, args.strength))
 
