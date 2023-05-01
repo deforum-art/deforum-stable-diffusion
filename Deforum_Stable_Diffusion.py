@@ -77,7 +77,7 @@ from IPython import display
 from types import SimpleNamespace
 from helpers.save_images import get_output_folder
 from helpers.settings import load_args
-from helpers.render import render_animation, render_input_video, render_image_batch, render_interpolation
+from helpers.render import do_render
 from helpers.model_load import make_linear_decode, load_model, get_model_output_paths
 from helpers.aesthetics import load_aesthetics_model
 
@@ -211,6 +211,9 @@ animation_prompts = {
 
 # %%
 
+from helpers import render
+
+
 def DeforumArgs():
     #@markdown **Custom Settings**
     override_settings_with_file = False #@param {type:"boolean"}
@@ -329,49 +332,13 @@ def DeforumArgs():
 args_dict = DeforumArgs()
 anim_args_dict = DeforumAnimArgs()
 
-
 args = SimpleNamespace(**args_dict)
 anim_args = SimpleNamespace(**anim_args_dict)
 
 if args.override_settings_with_file:
     load_args(args_dict, anim_args_dict, args.settings_file, args.custom_settings_file, verbose=False)
-args.timestring = time.strftime('%Y%m%d%H%M%S')
-args.strength = max(0.0, min(1.0, args.strength))
 
-# Load clip model if using clip guidance
-if (args.clip_scale > 0) or (args.aesthetics_scale > 0):
-    root.clip_model = clip.load(args.clip_name, jit=False)[0].eval().requires_grad_(False).to(root.device)
-    if (args.aesthetics_scale > 0):
-        root.aesthetics_model = load_aesthetics_model(args, root)
-
-if args.seed == -1:
-    args.seed = random.randint(0, 2**32 - 1)
-if not args.use_init:
-    args.init_image = None
-if args.sampler == 'plms' and (args.use_init or anim_args.animation_mode != 'None'):
-    print(f"Init images aren't supported with PLMS yet, switching to KLMS")
-    args.sampler = 'klms'
-if args.sampler != 'ddim':
-    args.ddim_eta = 0
-
-if anim_args.animation_mode == 'None':
-    anim_args.max_frames = 1
-elif anim_args.animation_mode == 'Video Input':
-    args.use_init = True
-
-# clean up unused memory
-gc.collect()
-torch.cuda.empty_cache()
-
-# dispatch to appropriate renderer
-if anim_args.animation_mode == '2D' or anim_args.animation_mode == '3D':
-    render_animation(args, anim_args, animation_prompts, root)
-elif anim_args.animation_mode == 'Video Input':
-    render_input_video(args, anim_args, animation_prompts, root)
-elif anim_args.animation_mode == 'Interpolation':
-    render_interpolation(args, anim_args, animation_prompts, root)
-else:
-    render_image_batch(args, prompts, root)
+do_render(args, anim_args, animation_prompts, root)
 
 # %% [markdown]
 # # Create Video From Frames

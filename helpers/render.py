@@ -5,6 +5,11 @@ import random
 from torchvision.utils import make_grid
 from einops import rearrange
 import pandas as pd
+import time
+import clip
+from helpers.aesthetics import load_aesthetics_model
+
+from helpers.settings import load_args
 os.environ["OPENCV_IO_ENABLE_OPENEXR"]="1"
 import cv2
 import numpy as np
@@ -29,6 +34,42 @@ except ModuleNotFoundError:
     from numpngw import write_png
 
 #import tifffile # Un-comment to save 32bpc TIFF images too. Also un-comment line within 'def save_8_16_or_32bpc_image()'
+
+def do_render(args, anim_args, animation_prompts, root):
+    args.timestring = time.strftime('%Y%m%d%H%M%S')
+    args.strength = max(0.0, min(1.0, args.strength))
+
+    # Load clip model if using clip guidance
+    if (args.clip_scale > 0) or (args.aesthetics_scale > 0):
+        root.clip_model = clip.load(args.clip_name, jit=False)[0].eval().requires_grad_(False).to(root.device)
+        if (args.aesthetics_scale > 0):
+            root.aesthetics_model = load_aesthetics_model(args, root)
+
+    if args.seed == -1:
+        args.seed = random.randint(0, 2**32 - 1)
+    if not args.use_init:
+        args.init_image = None
+    if args.sampler == 'plms' and (args.use_init or anim_args.animation_mode != 'None'):
+        print(f"Init images aren't supported with PLMS yet, switching to KLMS")
+        args.sampler = 'klms'
+    if args.sampler != 'ddim':
+        args.ddim_eta = 0
+
+    if anim_args.animation_mode == 'None':
+        anim_args.max_frames = 1
+    elif anim_args.animation_mode == 'Video Input':
+        args.use_init = True
+
+    # dispatch to appropriate renderer
+    if anim_args.animation_mode == '2D' or anim_args.animation_mode == '3D':
+        render_animation(args, anim_args, animation_prompts, root)
+    elif anim_args.animation_mode == 'Video Input':
+        render_input_video(args, anim_args, animation_prompts, root)
+    elif anim_args.animation_mode == 'Interpolation':
+        render_interpolation(args, anim_args, animation_prompts, root)
+    else:
+        render_image_batch(args, animation_prompts, root)
+
 
 # This function converts the image to 8bpc (if it isn't already) to display it on browser.
 def convert_image_to_8bpc(image, bit_depth_output): 
