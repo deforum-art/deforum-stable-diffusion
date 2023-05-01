@@ -122,6 +122,10 @@ class Predictor(BasePredictor):
         init_image: Path = Input(
             default=None, description="Provide init_image if use_init"
         ),
+        strength: float = Input(
+            default=0.5,
+            description="The initial diffusion on the input image."
+        ), 
         use_mask: bool = Input(default=False),
         mask_file: Path = Input(
             default=None, description="Provide mask_file if use_mask"
@@ -324,7 +328,7 @@ class Predictor(BasePredictor):
             "grid_rows": 2,
             "outdir": "cog_temp_output",
             "use_init": use_init,
-            "strength": 0.1,
+            "strength": strength,
             "strength_0_no_init": True,
             "init_image": init_image,
             "use_mask": use_mask,
