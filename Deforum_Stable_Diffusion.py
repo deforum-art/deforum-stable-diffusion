@@ -1,37 +1,24 @@
-# %%
-# !! {"metadata":{
-# !!   "id": "ByGXyiHZWM_q"
-# !! }}
-"""
-# **Deforum Stable Diffusion v0.7**
-[Stable Diffusion](https://github.com/CompVis/stable-diffusion) by Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, Björn Ommer and the [Stability.ai](https://stability.ai/) Team. [K Diffusion](https://github.com/crowsonkb/k-diffusion) by [Katherine Crowson](https://twitter.com/RiversHaveWings). Notebook by [deforum](https://discord.gg/upmXXsrwZc)
-
-[Quick Guide](https://docs.google.com/document/d/1RrQv7FntzOuLg4ohjRZPVL7iptIyBhwwbcEYEW2OfcI/edit?usp=sharing) to Deforum v0.7
-"""
+# %% [markdown]
+# # **Deforum Stable Diffusion v0.7**
+# [Stable Diffusion](https://github.com/CompVis/stable-diffusion) by Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, Björn Ommer and the [Stability.ai](https://stability.ai/) Team. [K Diffusion](https://github.com/crowsonkb/k-diffusion) by [Katherine Crowson](https://twitter.com/RiversHaveWings). Notebook by [deforum](https://discord.gg/upmXXsrwZc)
+# 
 
 # %%
-# !! {"metadata":{
-# !!   "cellView": "form",
-# !!   "id": "IJjzzkKlWM_s"
-# !! }}
 #@markdown **NVIDIA GPU**
+import torch
 import subprocess, os, sys
-sub_p_res = subprocess.run(['nvidia-smi', '--query-gpu=name,memory.total,memory.free', '--format=csv,noheader'], stdout=subprocess.PIPE).stdout.decode('utf-8')
-print(f"{sub_p_res[:-1]}")
+
+if torch.cuda.is_available():
+    sub_p_res = subprocess.run(['nvidia-smi', '--query-gpu=name,memory.total,memory.free', '--format=csv,noheader'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+    print(f"{sub_p_res[:-1]}")
+    has_cuda = True
+else:
+    print("No Nvidia GPU software or hardware found")
+
+# %% [markdown]
+# # Setup
 
 # %%
-# !! {"metadata":{
-# !!   "id": "UA8-efH-WM_t"
-# !! }}
-"""
-# Setup
-"""
-
-# %%
-# !! {"metadata":{
-# !!   "cellView": "form",
-# !!   "id": "vohUiWo-I2HQ"
-# !! }}
 #@markdown **Environment Setup**
 import subprocess, time, gc, os, sys
 
@@ -47,7 +34,7 @@ def setup_environment():
         print("..setting up environment")
 
         # weird hack
-        import torch
+        #import torch
         
         all_process = [
             ['pip', 'install', 'omegaconf', 'einops==0.4.1', 'pytorch-lightning==1.7.7', 'torchmetrics', 'transformers', 'safetensors', 'kornia'],
@@ -68,7 +55,7 @@ def setup_environment():
 
             print("..installing triton and xformers")
 
-            all_process = [['pip', 'install', 'triton==2.0.0.dev20221202', 'xformers==0.0.16rc424']]
+            all_process = [['pip', 'install', 'triton', 'xformers']]
             for process in all_process:
                 running = subprocess.run(process,stdout=subprocess.PIPE).stdout.decode('utf-8')
                 if print_subprocess:
@@ -83,7 +70,7 @@ def setup_environment():
 
 setup_environment()
 
-import torch
+
 import random
 import clip
 from IPython import display
@@ -95,10 +82,6 @@ from helpers.model_load import make_linear_decode, load_model, get_model_output_
 from helpers.aesthetics import load_aesthetics_model
 
 # %%
-# !! {"metadata":{
-# !!   "cellView": "form",
-# !!   "id": "0D2HQO-PWM_t"
-# !! }}
 #@markdown **Path Setup**
 
 def Root():
@@ -110,7 +93,8 @@ def Root():
     output_path_gdrive = "/content/drive/MyDrive/AI/StableDiffusion" #@param {type:"string"}
 
     #@markdown **Model Setup**
-    map_location = "cuda" #@param ["cpu", "cuda"]
+    map_location = "cuda" if torch.cuda.is_available() else "cpu" #@param ["cpu", "cuda"]
+    print( f"map_location: {map_location}" )
     model_config = "v1-inference.yaml" #@param ["custom","v2-inference.yaml","v2-inference-v.yaml","v1-inference.yaml"]
     model_checkpoint =  "Protogen_V2.2.ckpt" #@param ["custom","v2-1_768-ema-pruned.ckpt","v2-1_512-ema-pruned.ckpt","768-v-ema.ckpt","512-base-ema.ckpt","Protogen_V2.2.ckpt","v1-5-pruned.ckpt","v1-5-pruned-emaonly.ckpt","sd-v1-4-full-ema.ckpt","sd-v1-4.ckpt","sd-v1-3-full-ema.ckpt","sd-v1-3.ckpt","sd-v1-2-full-ema.ckpt","sd-v1-2.ckpt","sd-v1-1-full-ema.ckpt","sd-v1-1.ckpt", "robo-diffusion-v1.ckpt","wd-v1-3-float16.ckpt"]
     custom_config_path = "" #@param {type:"string"}
@@ -123,19 +107,10 @@ root = SimpleNamespace(**root)
 root.models_path, root.output_path = get_model_output_paths(root)
 root.model, root.device = load_model(root, load_on_run_all=True, check_sha256=True, map_location=root.map_location)
 
-# %%
-# !! {"metadata":{
-# !!   "id": "6JxwhBwtWM_t"
-# !! }}
-"""
-# Settings
-"""
+# %% [markdown]
+# # Settings
 
 # %%
-# !! {"metadata":{
-# !!   "cellView": "form",
-# !!   "id": "E0tJVYA4WM_u"
-# !! }}
 def DeforumAnimArgs():
 
     #@markdown ####**Animation:**
@@ -218,9 +193,6 @@ def DeforumAnimArgs():
     return locals()
 
 # %%
-# !! {"metadata":{
-# !!   "id": "i9fly1RIWM_u"
-# !! }}
 prompts = [
     "a beautiful lake by Asher Brown Durand, trending on Artstation", # the first prompt I want
     "a beautiful portrait of a woman by Artgerm, trending on Artstation", # the second prompt I want
@@ -238,10 +210,6 @@ animation_prompts = {
 }
 
 # %%
-# !! {"metadata":{
-# !!   "cellView": "form",
-# !!   "id": "XVzhbmizWM_u"
-# !! }}
 #@markdown **Load Settings**
 override_settings_with_file = False #@param {type:"boolean"}
 settings_file = "custom" #@param ["custom", "512x512_aesthetic_0.json","512x512_aesthetic_1.json","512x512_colormatch_0.json","512x512_colormatch_1.json","512x512_colormatch_2.json","512x512_colormatch_3.json"]
@@ -256,7 +224,7 @@ def DeforumArgs():
 
     #@markdown **Sampling Settings**
     seed = -1 #@param
-    sampler = 'ddim' #@param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim", "dpm_fast", "dpm_adaptive", "dpmpp_2s_a", "dpmpp_2m"]
+    sampler = 'euler_ancestral' #@param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim", "dpm_fast", "dpm_adaptive", "dpmpp_2s_a", "dpmpp_2m"]
     steps = 50 #@param
     scale = 7 #@param
     ddim_eta = 0.0 #@param
@@ -404,72 +372,70 @@ elif anim_args.animation_mode == 'Interpolation':
 else:
     render_image_batch(args, prompts, root)
 
-# %%
-# !! {"metadata":{
-# !!   "id": "gJ88kZ2-WM_v"
-# !! }}
-"""
-# Create Video From Frames
-"""
+# %% [markdown]
+# # Create Video From Frames
 
 # %%
-# !! {"metadata":{
-# !!   "cellView": "form",
-# !!   "id": "XQGeqaGAWM_v"
-# !! }}
-skip_video_for_run_all = True #@param {type: 'boolean'}
-fps = 12 #@param {type:"number"}
-#@markdown **Manual Settings**
-use_manual_settings = False #@param {type:"boolean"}
-image_path = "/content/drive/MyDrive/AI/StableDiffusion/2023-01/StableFun/20230101212135_%05d.png" #@param {type:"string"}
-mp4_path = "/content/drive/MyDrive/AI/StableDiffusion/2023-01/StableFun/20230101212135.mp4" #@param {type:"string"}
-render_steps = False  #@param {type: 'boolean'}
-path_name_modifier = "x0_pred" #@param ["x0_pred","x"]
-make_gif = False
-bitdepth_extension = "exr" if args.bit_depth_output == 32 else "png"
+def BasicArgs():
+    skip_video_for_run_all = True #@param {type: 'boolean'}
+    fps = 12 #@param {type:"number"}
+    #@markdown **Manual Settings**
+    use_manual_settings = False #@param {type:"boolean"}
+    image_path = "/content/drive/MyDrive/AI/StableDiffusion/2023-01/StableFun/20230101212135_%05d.png" #@param {type:"string"}
+    mp4_path = "/content/drive/MyDrive/AI/StableDiffusion/2023-01/StableFun/20230101212135.mp4" #@param {type:"string"}
+    render_steps = False  #@param {type: 'boolean'}
+    path_name_modifier = "x0_pred" #@param ["x0_pred","x"]
+    make_gif = False
+    bitdepth_extension = "exr" if args.bit_depth_output == 32 else "png"
+    skip_disconnect_for_run_all = True #@param {type: 'boolean'}
+    max_frames = "200" #@param {type:"string"}
+    return locals()
 
-if skip_video_for_run_all == True:
+# %%
+
+basics = BasicArgs()
+basics = SimpleNamespace(**basics)
+
+if basics.skip_video_for_run_all == True:
     print('Skipping video creation, uncheck skip_video_for_run_all if you want to run it')
 else:
     import os
     import subprocess
     from base64 import b64encode
 
-    print(f"{image_path} -> {mp4_path}")
+    print(f"{basics.image_path} -> {basics.mp4_path}")
 
-    if use_manual_settings:
-        max_frames = "200" #@param {type:"string"}
-    else:
-        if render_steps: # render steps from a single image
-            fname = f"{path_name_modifier}_%05d.png"
+    if not basics.use_manual_settings:
+        if basics.render_steps: # render steps from a single image
+            fname = f"{basics.path_name_modifier}_%05d.png"
             all_step_dirs = [os.path.join(args.outdir, d) for d in os.listdir(args.outdir) if os.path.isdir(os.path.join(args.outdir,d))]
             newest_dir = max(all_step_dirs, key=os.path.getmtime)
-            image_path = os.path.join(newest_dir, fname)
-            print(f"Reading images from {image_path}")
-            mp4_path = os.path.join(newest_dir, f"{args.timestring}_{path_name_modifier}.mp4")
-            max_frames = str(args.steps)
+            basics.image_path = os.path.join(newest_dir, fname)
+            print(f"Reading images from {basics.image_path}")
+            basics.mp4_path = os.path.join(newest_dir, f"{args.timestring}_{basics.path_name_modifier}.mp4")
+            basics.max_frames = str(args.steps)
         else: # render images for a video
-            image_path = os.path.join(args.outdir, f"{args.timestring}_%05d.{bitdepth_extension}")
-            mp4_path = os.path.join(args.outdir, f"{args.timestring}.mp4")
-            max_frames = str(anim_args.max_frames)
+            basics.image_path = os.path.join(args.outdir, f"{args.timestring}_%05d.{basics.bitdepth_extension}")
+            basics.mp4_path = os.path.join(args.outdir, f"{args.timestring}.mp4")
+            basics.max_frames = str(anim_args.max_frames)
 
     # make video
     cmd = [
         'ffmpeg',
         '-y',
-        '-vcodec', bitdepth_extension,
-        '-r', str(fps),
+        '-vcodec', basics.bitdepth_extension,
+        '-r', str(basics.fps),
         '-start_number', str(0),
-        '-i', image_path,
-        '-frames:v', max_frames,
+        '-i', basics.image_path,
+        '-frames:v', basics.max_frames,
         '-c:v', 'libx264',
         '-vf',
-        f'fps={fps}',
+        f'fps={basics.fps}',
         '-pix_fmt', 'yuv420p',
         '-crf', '17',
         '-preset', 'veryfast',
         '-pattern_type', 'sequence',
-        mp4_path
+        basics.mp4_path
     ]
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
@@ -477,62 +443,28 @@ else:
         print(stderr)
         raise RuntimeError(stderr)
 
-    mp4 = open(mp4_path,'rb').read()
+    mp4 = open(basics.mp4_path,'rb').read()
     data_url = "data:video/mp4;base64," + b64encode(mp4).decode()
     display.display(display.HTML(f'<video controls loop><source src="{data_url}" type="video/mp4"></video>') )
     
-    if make_gif:
-         gif_path = os.path.splitext(mp4_path)[0]+'.gif'
+    if basics.make_gif:
+         gif_path = os.path.splitext(basics.mp4_path)[0]+'.gif'
          cmd_gif = [
              'ffmpeg',
              '-y',
-             '-i', mp4_path,
-             '-r', str(fps),
+             '-i', basics.mp4_path,
+             '-r', str(basics.fps),
              gif_path
          ]
          process_gif = subprocess.Popen(cmd_gif, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-# %%
-# !! {"metadata":{
-# !!   "cellView": "form",
-# !!   "id": "MMpAcyrYWM_v"
-# !! }}
-skip_disconnect_for_run_all = True #@param {type: 'boolean'}
-
-if skip_disconnect_for_run_all == True:
+if basics.skip_disconnect_for_run_all == True:
     print('Skipping disconnect, uncheck skip_disconnect_for_run_all if you want to run it')
 else:
     from google.colab import runtime
     runtime.unassign()
 
 # %%
-# !! {"main_metadata":{
-# !!   "accelerator": "GPU",
-# !!   "colab": {
-# !!     "provenance": []
-# !!   },
-# !!   "gpuClass": "standard",
-# !!   "kernelspec": {
-# !!     "display_name": "Python 3.10.6 ('dsd')",
-# !!     "language": "python",
-# !!     "name": "python3"
-# !!   },
-# !!   "language_info": {
-# !!     "codemirror_mode": {
-# !!       "name": "ipython",
-# !!       "version": 3
-# !!     },
-# !!     "file_extension": ".py",
-# !!     "mimetype": "text/x-python",
-# !!     "name": "python",
-# !!     "nbconvert_exporter": "python",
-# !!     "pygments_lexer": "ipython3",
-# !!     "version": "3.10.8"
-# !!   },
-# !!   "orig_nbformat": 4,
-# !!   "vscode": {
-# !!     "interpreter": {
-# !!       "hash": "b7e04c8a9537645cbc77fa0cbde8069bc94e341b0d5ced104651213865b24e58"
-# !!     }
-# !!   }
-# !! }}
+
+
+
