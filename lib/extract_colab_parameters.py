@@ -32,14 +32,23 @@ def strip_quotes_from_embedded_list_items(input_string):
     output_string = ', '.join(no_quotes_strings)
     return output_string
 
-def generate_parameters_file(parameters):
+def generate_parameters_python_file(parameters):
     methods = list(set([obj["method"] for obj in parameters]))
 
-    with open("parameters.tmpl.py") as file:
+    with open("parameters.jinja2.py") as file:
         template = Template(file.read())
 
     with open("parameters.py", "w") as output:
         output.write(template.render(objects=parameters, methods=methods))
+
+def save_output(parameters, format="python"):
+    if format == "python":
+        generate_parameters_python_file(parameters)
+        print(f"## generated parameters.py with {len(parameters)} parameters")
+    elif format == "json":
+        with open("parameters.json", "w") as output:
+            output.write(json.dumps(parameters, indent=4))
+        print(f"## generated parameters.json with {len(parameters)} parameters")
 
 def extract_from_line(line):
     """Extracts the variable name, value, type, and constraints from a line of code containing a Colab #@param annotation"""
@@ -108,7 +117,6 @@ def extract_colab_params(ipynb_file):
                         "constraints": constraints_value,
                         "type": type_value
                     })
-                    print(f"### {current_method_name}, {variable_name} = '{variable_value}', type = '{type_value}', constraints = '{constraints_value}'")
             variables.extend(params)
 
     # print(f"## extracted {len(variables)} variables from {ipynb_file}")
@@ -120,18 +128,15 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(description='Extract parameters from a Colab notebook')
 
-    parser.add_argument('--notebook', type=str, help='Colab notebook file')
+    parser.add_argument('--notebook', type=str, default='../Deforum_Stable_Diffusion.ipynb', help='Colab notebook file')
+    parser.add_argument('--output-format', type=str, help='Output as json or python', default="python" )
     args = parser.parse_args()
 
     parameters = extract_colab_params(args.notebook)
-    print(f"Extracted {len(parameters)} variables from {args.notebook}")
 
-    generate_parameters_file(parameters)
+    generate_parameters_python_file(parameters)
 
-
-    # json pretty print the variables
-    print(json.dumps(parameters, indent=2))
-
+    save_output(parameters, format=args.output_format)
 
 if __name__ == "__main__":
    main()

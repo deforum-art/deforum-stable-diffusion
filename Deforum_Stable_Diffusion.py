@@ -1,5 +1,5 @@
 # %% [markdown]
-# # **Deforum Stable Diffusion v0.7**
+# # **Deforum Stable Diffusion v0.7.1**
 # [Stable Diffusion](https://github.com/CompVis/stable-diffusion) by Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, Björn Ommer and the [Stability.ai](https://stability.ai/) Team. [K Diffusion](https://github.com/crowsonkb/k-diffusion) by [Katherine Crowson](https://twitter.com/RiversHaveWings). Notebook by [deforum](https://discord.gg/upmXXsrwZc)
 # 
 
@@ -271,9 +271,9 @@ def DeforumArgs():
     mask_brightness_adjust = 1.0  #@param {type:"number"}
     mask_contrast_adjust = 1.0  #@param {type:"number"}
     # Overlay the masked image at the end of the generation so it does not get degraded by encoding and decoding
-    overlay_mask = True  # {type:"boolean"}
+    overlay_mask = True  #@param {type:"boolean"}
     # Blur edges of final overlay mask, if used. Minimum = 0 (no blur)
-    mask_overlay_blur = 5 # {type:"number"}
+    mask_overlay_blur = 5 #@param {type:"number"}
 
     #@markdown **Exposure/Contrast Conditional Settings**
     mean_scale = 0 #@param {type:"number"}
