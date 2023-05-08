@@ -1,3 +1,8 @@
+# 8 May Julian's note on Windows installation
+Windows dependency management is a mess. There are a thousand reasons why running `install_requirements.py` won't work. Here are a few tips:
+- use python environment isolation like `pipenv` or `poetry` (I've only used the former). If you have, say, `scikit-image 0.20.x` installed, the install script will NOT remove it and install `0.19.3` even though the API changed and 0.20.0 won't work. Starting afresh with `pipenv` is the only way I stay sane.
+- Make sure you only have CUDA 11.7 installed. Not 12, not 11.8, 11.7 is what the python script requires. Maybe conda is the way to solve this? Never used it but maybe so. Problem is I don't really use deforum on Windows so probably won't invest much more into this. 
+
 # Deforum Stable Diffusion
 
 <p align="left">
