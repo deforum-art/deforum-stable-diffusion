@@ -1,44 +1,54 @@
+import argparse
 import platform
 import subprocess
 
 
-def pip_install_packages(packages, extra_index_url=None):
+def pip_install_packages(packages, extra_index_url=None, verbose=False):
     for package in packages:
         try:
             print(f"..installing {package}")
-            if extra_index_url is not None:
-                running = subprocess.call(
-                    [
-                        "pip",
-                        "install",
-                        "-q",
-                        package,
-                        "--extra-index-url",
-                        extra_index_url,
-                    ],
-                    shell=False,
-                )
-            else:
-                running = subprocess.call(
-                    ["pip", "install", "-q", package], shell=False
-                )
+            
+            # base command
+            cmd = ["pip", "install"]
+
+            # add '-q' if not verbose
+            if not verbose:
+                cmd.append("-q")
+
+            # add package name
+            cmd.append(package)
+
+            # add extra_index_url if it exists
+            if extra_index_url:
+                cmd.extend(["--extra-index-url", extra_index_url])
+
+            # run the command and capture output
+            result = subprocess.run(cmd, capture_output=not verbose, text=True)
+            
+            if verbose:
+                # print stdout and stderr if verbose
+                print(result.stdout)
+                print(result.stderr)
+
         except Exception as e:
             print(f"failed to install {package}: {e}")
     return
 
 
-def install_requirements():
+def install_requirements(verbose=False):
+
     # Detect System
     os_system = platform.system()
     print(f"system detected: {os_system}")
 
     # Install pytorch
-    torch = ["torch", "torchvision", "torchaudio"]
-
-    extra_index_url = (
-        "https://download.pytorch.org/whl/cu117" if os_system == "Windows" else None
-    )
-    pip_install_packages(torch, extra_index_url=extra_index_url)
+    torch = [
+        "torch",
+        "torchvision",
+        "torchaudio"
+    ]
+    extra_index_url = "https://download.pytorch.org/whl/cu117" if os_system == 'Windows' else None
+    pip_install_packages(torch, extra_index_url=extra_index_url, verbose=verbose)
 
     # List of common packages to install
     common = [
@@ -56,11 +66,11 @@ def install_requirements():
         "notebook",
         "numexpr",
         "omegaconf",
-        "opencv-contrib-python",
+        "opencv-python",
         "pandas",
         "pytorch_lightning==1.7.7",
         "resize-right",
-        "scikit-image",
+        "scikit-image==0.19.3",
         "scikit-learn",
         "timm",
         "torchdiffeq",
@@ -75,22 +85,23 @@ def install_requirements():
         "torchsde",
         "ninja",
     ]
-
     pip_install_packages(common)
+
 
     # Xformers install
     linux_xformers = [
-        "triton==2.0.0.dev20221202",
-        "xformers==0.0.16",
+        "triton",
+        "xformers",
     ]
-
     windows_xformers = [
-        "https://huggingface.co/deforum/xformers/resolve/main/windows/xformers-0.0.15.dev0fd21b40.d20230107-cp310-cp310-win_amd64.whl",
+        "xformers",
     ]
-
-    xformers = windows_xformers if os_system == "Windows" else linux_xformers
+    xformers = windows_xformers if os_system == 'Windows' else linux_xformers
     pip_install_packages(xformers)
 
 
 if __name__ == "__main__":
-    install_requirements()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--verbose', action='store_true', help='print pip install stuff')
+    args = parser.parse_args()
+    install_requirements(verbose=args.verbose)
