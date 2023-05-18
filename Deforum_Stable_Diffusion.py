@@ -3,7 +3,7 @@
 # !!   "id": "ByGXyiHZWM_q"
 # !! }}
 """
-# **Deforum Stable Diffusion v0.7**
+# **Deforum Stable Diffusion v0.7 (DEV)**
 [Stable Diffusion](https://github.com/CompVis/stable-diffusion) by Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, Björn Ommer and the [Stability.ai](https://stability.ai/) Team. [K Diffusion](https://github.com/crowsonkb/k-diffusion) by [Katherine Crowson](https://twitter.com/RiversHaveWings). Notebook by [deforum](https://discord.gg/upmXXsrwZc)
 
 [Quick Guide](https://docs.google.com/document/d/1RrQv7FntzOuLg4ohjRZPVL7iptIyBhwwbcEYEW2OfcI/edit?usp=sharing) to Deforum v0.7
@@ -36,47 +36,53 @@ print(f"{sub_p_res[:-1]}")
 import subprocess, time, gc, os, sys
 
 def setup_environment():
-    start_time = time.time()
-    print_subprocess = False
-    use_xformers_for_colab = True
+    
+    # Check if it's a Google Colab environment
     try:
         ipy = get_ipython()
     except:
         ipy = 'could not get_ipython'
+    
     if 'google.colab' in str(ipy):
-        print("..setting up environment")
-        
-        all_process = [
-            ['pip', 'install', 'omegaconf', 'einops==0.4.1', 'pytorch-lightning==1.7.7', 'torchmetrics', 'transformers', 'safetensors', 'kornia'],
-            ['git', 'clone', '-b', 'dev', 'https://github.com/deforum-art/deforum-stable-diffusion'],
-            ['pip', 'install', 'accelerate', 'ftfy', 'jsonmerge', 'matplotlib', 'resize-right', 'timm', 'torchdiffeq','scikit-learn','torchsde','open-clip-torch','numpngw'],
+
+        # Start the timer
+        start_time = time.time()
+
+        # Installing the necessary packages
+        packages = [
+            'torch==2.0.0 torchvision torchaudio triton xformers',
+            'einops==0.4.1 pytorch-lightning==1.7.7 torchdiffeq torchsde omegaconf',
+            'ftfy timm transformers open-clip-torch omegaconf torchmetrics',
+            'safetensors kornia accelerate jsonmerge matplotlib resize-right',
+            'scikit-learn numpngw'
         ]
-        for process in all_process:
-            running = subprocess.run(process,stdout=subprocess.PIPE).stdout.decode('utf-8')
-            if print_subprocess:
-                print(running)
+
+        for package in packages:
+            print(f"..installing {package}")
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install'] + package.split())
+
+        # Cloning the github repository
+        subprocess.check_call(['git', 'clone', 'https://github.com/deforum-art/deforum-stable-diffusion'])
+
+        # Modifying the python file
         with open('deforum-stable-diffusion/src/k_diffusion/__init__.py', 'w') as f:
             f.write('')
+
+        # Extending the system path
         sys.path.extend([
             'deforum-stable-diffusion/',
             'deforum-stable-diffusion/src',
         ])
-        if use_xformers_for_colab:
 
-            print("..installing triton and xformers")
+        # End the timer
+        end_time = time.time()
 
-            all_process = [['pip', 'install', 'triton==2.0.0.dev20221202', 'xformers==0.0.16']]
-            for process in all_process:
-                running = subprocess.run(process,stdout=subprocess.PIPE).stdout.decode('utf-8')
-                if print_subprocess:
-                    print(running)
+        # Print the time it took
+        print(f"..environment set up in {end_time-start_time:.0f} seconds")
+    
     else:
-        sys.path.extend([
-            'src'
-        ])
-    end_time = time.time()
-    print(f"..environment set up in {end_time-start_time:.0f} seconds")
-    return
+
+        print("..skipping setup")
 
 setup_environment()
 
