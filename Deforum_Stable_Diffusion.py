@@ -80,7 +80,9 @@ def setup_environment():
         print(f"..environment set up in {end_time-start_time:.0f} seconds")
     
     else:
-
+        sys.path.extend([
+            'src'
+        ])
         print("..skipping setup")
 
 setup_environment()
