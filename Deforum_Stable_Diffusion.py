@@ -62,7 +62,7 @@ def setup_environment():
             subprocess.check_call([sys.executable, '-m', 'pip', 'install'] + package.split())
 
         # Cloning the github repository
-        subprocess.check_call(['git', 'clone', 'https://github.com/deforum-art/deforum-stable-diffusion'])
+        subprocess.check_call(['git', 'clone', '-b', 'dev', 'https://github.com/deforum-art/deforum-stable-diffusion'])
 
         # Modifying the python file
         with open('deforum-stable-diffusion/src/k_diffusion/__init__.py', 'w') as f:
