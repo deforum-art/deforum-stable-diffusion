@@ -3,7 +3,7 @@
 # !!   "id": "ByGXyiHZWM_q"
 # !! }}
 """
-# **Deforum Stable Diffusion COLAB (v0.7.1)**
+# **Deforum Stable Diffusion (v0.7.1)**
 """
 
 # %%
@@ -50,7 +50,7 @@ def setup_environment():
         for package in packages:
             print(f"..installing {package}")
             subprocess.check_call([sys.executable, '-m', 'pip', 'install'] + package.split())
-        subprocess.check_call(['git', 'clone', '-b', 'dev', 'https://github.com/deforum-art/deforum-stable-diffusion.git'])
+        subprocess.check_call(['git', 'clone', 'https://github.com/deforum-art/deforum-stable-diffusion.git'])
         with open('deforum-stable-diffusion/src/k_diffusion/__init__.py', 'w') as f:
             f.write('')
         sys.path.extend(['deforum-stable-diffusion/','deforum-stable-diffusion/src',])
