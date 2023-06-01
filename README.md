@@ -6,6 +6,7 @@
     <a href="https://github.com/deforum-art/deforum-stable-diffusion/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/deforum-art/deforum-stable-diffusion"></a>
     <a href="https://github.com/deforum-art/deforum-stable-diffusion/network"><img alt="GitHub forks" src="https://img.shields.io/github/forks/deforum-art/deforum-stable-diffusion"></a>
     <a href="https://colab.research.google.com/github/deforum-art/deforum-stable-diffusion/blob/main/Deforum_Stable_Diffusion.ipynb"><img alt="Colab" src="https://colab.research.google.com/assets/colab-badge.svg"></a>  
+    <a href="https://replicate.com/deforum-art/deforum-stable-diffusion"><img alt="Replicate" src="https://replicate.com/deforum-art/deforum-stable-diffusion/badge"></a>  
 </p>
 
 Welcome to Deforum Stable Diffusion!
@@ -25,6 +26,8 @@ Welcome to Deforum Stable Diffusion!
 ## Introduction
 
 We are a community of programmers and artists who are passionate about making stable diffusion machine learning image synthesis accessible to everyone. Our open source project is designed to be free to use and easy to modify for custom needs and pipelines. We believe in the power of collaboration and are constantly working together to improve and evolve our implementation of stable diffusion. Whether you are an experienced developer or just getting started, we invite you to join us and be a part of this exciting project.
+
+You can now also run Deforum Stable Diffusion easily on Replicate, check out the web demo and the API here [![Replicate](https://replicate.com/deforum-art/deforum-stable-diffusion/badge)](https://replicate.com/deforum-art/deforum-stable-diffusion) 
 
 ## Key Features
 

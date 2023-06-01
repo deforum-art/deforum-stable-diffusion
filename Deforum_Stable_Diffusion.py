@@ -37,6 +37,7 @@ def setup_environment():
         ipy = get_ipython()
     except:
         ipy = 'could not get_ipython'
+    
     if 'google.colab' in str(ipy):
         start_time = time.time()
         packages = [
@@ -236,7 +237,7 @@ def DeforumArgs():
 
     #@markdown **Sampling Settings**
     seed = -1 #@param
-    sampler = 'ddim' #@param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim", "dpm_fast", "dpm_adaptive", "dpmpp_2s_a", "dpmpp_2m"]
+    sampler = 'euler_ancestral' #@param ["klms","dpm2","dpm2_ancestral","heun","euler","euler_ancestral","plms", "ddim", "dpm_fast", "dpm_adaptive", "dpmpp_2s_a", "dpmpp_2m"]
     steps = 50 #@param
     scale = 7 #@param
     ddim_eta = 0.0 #@param
