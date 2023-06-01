@@ -41,8 +41,8 @@ def setup_environment():
     if 'google.colab' in str(ipy):
         start_time = time.time()
         packages = [
-            'torch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 triton==2.0.0.post1 xformers==0.0.20',
-            'einops==0.4.1 pytorch-lightning==1.7.7 torchdiffeq==0.2.3 torchsde==0.2.5 omegaconf==2.3.0',
+            'torch==2.0.0 torchvision torchaudio triton xformers',
+            'einops==0.4.1 pytorch-lightning==1.7.7 torchdiffeq==0.2.3 torchsde==0.2.5',
             'ftfy timm transformers open-clip-torch omegaconf torchmetrics',
             'safetensors kornia accelerate jsonmerge matplotlib resize-right',
             'scikit-learn numpngw'
@@ -76,7 +76,7 @@ from helpers.aesthetics import load_aesthetics_model
 # %%
 # !! {"metadata":{
 # !!   "cellView": "form",
-# !!   "id": "IQozFNK2ecrf"
+# !!   "id": "tQPlBfq9fIj8"
 # !! }}
 #@markdown **Path Setup**
 
@@ -89,13 +89,13 @@ def PathSetup():
     output_path_gdrive = "/content/drive/MyDrive/AI/StableDiffusion" #@param {type:"string"}
     return locals()
 
-path_root = PathSetup()
-path_root.models_path, path_root.output_path = get_model_output_paths(path_root)
+root = SimpleNamespace(**PathSetup())
+root.models_path, root.output_path = get_model_output_paths(root)
 
 # %%
 # !! {"metadata":{
 # !!   "cellView": "form",
-# !!   "id": "t5jeLGylecrf"
+# !!   "id": "232_xKcCfIj9"
 # !! }}
 #@markdown **Model Setup**
 
@@ -107,10 +107,9 @@ def ModelSetup():
     custom_checkpoint_path = "" #@param {type:"string"}
     return locals()
 
-model_root = ModelSetup()
-root = {**path_root, **model_root}
-root = SimpleNamespace(**root)
+root.__dict__.update(ModelSetup())
 root.model, root.device = load_model(root, load_on_run_all=True, check_sha256=True, map_location=root.map_location)
+
 
 # %%
 # !! {"metadata":{
@@ -128,7 +127,7 @@ root.model, root.device = load_model(root, load_on_run_all=True, check_sha256=Tr
 def DeforumAnimArgs():
 
     #@markdown ####**Animation:**
-    animation_mode = 'None' #@param ['None', '2D', '3D', 'Video Input', 'Interpolation'] {type:'string'}
+    animation_mode = '3D' #@param ['None', '2D', '3D', 'Video Input', 'Interpolation'] {type:'string'}
     max_frames = 1000 #@param {type:"number"}
     border = 'replicate' #@param ['wrap', 'replicate'] {type:'string'}
 
@@ -436,8 +435,8 @@ else:
 
     ffmpeg_args_dict = ffmpegArgs()
     ffmpeg_args = SimpleNamespace(**ffmpeg_args_dict)
-    make_mp4_ffmpeg(ffmpeg_args, display_ffmpeg=False, debug=True)
-    make_gif_ffmpeg(ffmpeg_args, debug=True)
+    make_mp4_ffmpeg(ffmpeg_args, display_ffmpeg=True, debug=False)
+    make_gif_ffmpeg(ffmpeg_args, debug=False)
     #patrol_cycle(args,ffmpeg_args)
 
 # %%
