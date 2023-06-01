@@ -41,8 +41,8 @@ def setup_environment():
     if 'google.colab' in str(ipy):
         start_time = time.time()
         packages = [
-            'torch==2.0.0 torchvision torchaudio triton xformers',
-            'einops==0.4.1 pytorch-lightning==1.7.7 torchdiffeq torchsde omegaconf',
+            'torch==2.0.0 torchvision==0.15.0 torchaudio==2.0.0 triton==2.0.0.post1 xformers==0.0.20',
+            'einops==0.4.1 pytorch-lightning==1.7.7 torchdiffeq==0.2.3 torchsde==0.2.5 omegaconf==2.3.0',
             'ftfy timm transformers open-clip-torch omegaconf torchmetrics',
             'safetensors kornia accelerate jsonmerge matplotlib resize-right',
             'scikit-learn numpngw'
@@ -74,21 +74,26 @@ from helpers.model_load import make_linear_decode, load_model, get_model_output_
 from helpers.aesthetics import load_aesthetics_model
 
 # %%
-# !! {"metadata":{
-# !!   "cellView": "form",
-# !!   "id": "0D2HQO-PWM_t"
-# !! }}
+# !! {"metadata":# !! {}
 #@markdown **Path Setup**
 
-def Root():
+def PathSetup():
     models_path = "models" #@param {type:"string"}
     configs_path = "configs" #@param {type:"string"}
     output_path = "outputs" #@param {type:"string"}
     mount_google_drive = True #@param {type:"boolean"}
     models_path_gdrive = "/content/drive/MyDrive/AI/models" #@param {type:"string"}
     output_path_gdrive = "/content/drive/MyDrive/AI/StableDiffusion" #@param {type:"string"}
+    return locals()
 
-    #@markdown **Model Setup**
+path_root = PathSetup()
+path_root.models_path, path_root.output_path = get_model_output_paths(path_root)
+
+# %%
+# !! {"metadata":# !! {}
+#@markdown **Model Setup**
+
+def ModelSetup():
     map_location = "cuda" #@param ["cpu", "cuda"]
     model_config = "v1-inference.yaml" #@param ["custom","v2-inference.yaml","v2-inference-v.yaml","v1-inference.yaml"]
     model_checkpoint =  "Protogen_V2.2.ckpt" #@param ["custom","v2-1_768-ema-pruned.ckpt","v2-1_512-ema-pruned.ckpt","768-v-ema.ckpt","512-base-ema.ckpt","Protogen_V2.2.ckpt","v1-5-pruned.ckpt","v1-5-pruned-emaonly.ckpt","sd-v1-4-full-ema.ckpt","sd-v1-4.ckpt","sd-v1-3-full-ema.ckpt","sd-v1-3.ckpt","sd-v1-2-full-ema.ckpt","sd-v1-2.ckpt","sd-v1-1-full-ema.ckpt","sd-v1-1.ckpt", "robo-diffusion-v1.ckpt","wd-v1-3-float16.ckpt"]
@@ -96,10 +101,9 @@ def Root():
     custom_checkpoint_path = "" #@param {type:"string"}
     return locals()
 
-root = Root()
+model_root = ModelSetup()
+root = {**path_root, **model_root}
 root = SimpleNamespace(**root)
-
-root.models_path, root.output_path = get_model_output_paths(root)
 root.model, root.device = load_model(root, load_on_run_all=True, check_sha256=True, map_location=root.map_location)
 
 # %%
