@@ -4,6 +4,13 @@
 # !! }}
 """
 # **Deforum Stable Diffusion (v0.7.1)**
+**Help keep these resources free for everyone**, please consider supporting us on [Patreon](https://www.patreon.com/deforum). Every bit of support is deeply appreciated!
+
+- **Looking for a latest in Deforum development?** Check out the [Deforum Automatic1111 Extension](https://github.com/deforum-art/sd-webui-deforum)
+
+- **Something not working properly?** Use our github page to submit a [New Issue](https://github.com/deforum-art/deforum-stable-diffusion/issues)
+
+- **Need help?** For support please join our community [Discord](https://discord.gg/deforum)
 """
 
 # %%
