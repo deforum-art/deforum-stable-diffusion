@@ -3,10 +3,7 @@
 # !!   "id": "ByGXyiHZWM_q"
 # !! }}
 """
-# **Deforum Stable Diffusion v0.7 (DEV)**
-[Stable Diffusion](https://github.com/CompVis/stable-diffusion) by Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, Björn Ommer and the [Stability.ai](https://stability.ai/) Team. [K Diffusion](https://github.com/crowsonkb/k-diffusion) by [Katherine Crowson](https://twitter.com/RiversHaveWings). Notebook by [deforum](https://discord.gg/upmXXsrwZc)
-
-[Quick Guide](https://docs.google.com/document/d/1RrQv7FntzOuLg4ohjRZPVL7iptIyBhwwbcEYEW2OfcI/edit?usp=sharing) to Deforum v0.7
+# **Deforum Stable Diffusion COLAB (v0.7.1)**
 """
 
 # %%
@@ -36,19 +33,12 @@ print(f"{sub_p_res[:-1]}")
 import subprocess, time, gc, os, sys
 
 def setup_environment():
-    
-    # Check if it's a Google Colab environment
     try:
         ipy = get_ipython()
     except:
         ipy = 'could not get_ipython'
-    
     if 'google.colab' in str(ipy):
-
-        # Start the timer
         start_time = time.time()
-
-        # Installing the necessary packages
         packages = [
             'torch==2.0.0 torchvision torchaudio triton xformers',
             'einops==0.4.1 pytorch-lightning==1.7.7 torchdiffeq torchsde omegaconf',
@@ -56,34 +46,17 @@ def setup_environment():
             'safetensors kornia accelerate jsonmerge matplotlib resize-right',
             'scikit-learn numpngw'
         ]
-
         for package in packages:
             print(f"..installing {package}")
             subprocess.check_call([sys.executable, '-m', 'pip', 'install'] + package.split())
-
-        # Cloning the github repository
-        subprocess.check_call(['git', 'clone', '-b', 'dev', 'https://github.com/deforum-art/deforum-stable-diffusion'])
-
-        # Modifying the python file
+        subprocess.check_call(['git', 'clone', '-b', 'dev', 'https://github.com/deforum-art/deforum-stable-diffusion.git'])
         with open('deforum-stable-diffusion/src/k_diffusion/__init__.py', 'w') as f:
             f.write('')
-
-        # Extending the system path
-        sys.path.extend([
-            'deforum-stable-diffusion/',
-            'deforum-stable-diffusion/src',
-        ])
-
-        # End the timer
+        sys.path.extend(['deforum-stable-diffusion/','deforum-stable-diffusion/src',])
         end_time = time.time()
-
-        # Print the time it took
         print(f"..environment set up in {end_time-start_time:.0f} seconds")
-    
     else:
-        sys.path.extend([
-            'src'
-        ])
+        sys.path.extend(['src'])
         print("..skipping setup")
 
 setup_environment()
@@ -144,7 +117,7 @@ root.model, root.device = load_model(root, load_on_run_all=True, check_sha256=Tr
 def DeforumAnimArgs():
 
     #@markdown ####**Animation:**
-    animation_mode = 'None' #@param ['None', '2D', '3D', 'Video Input', 'Interpolation'] {type:'string'}
+    animation_mode = '3D' #@param ['None', '2D', '3D', 'Video Input', 'Interpolation'] {type:'string'}
     max_frames = 1000 #@param {type:"number"}
     border = 'replicate' #@param ['wrap', 'replicate'] {type:'string'}
 
@@ -420,91 +393,10 @@ else:
 # %%
 # !! {"metadata":{
 # !!   "cellView": "form",
-# !!   "id": "XQGeqaGAWM_v"
-# !! }}
-#@markdown **Legacy Version**
-skip_video_for_run_all = True #@param {type: 'boolean'}
-fps = 12 #@param {type:"number"}
-#@markdown **Manual Settings**
-use_manual_settings = False #@param {type:"boolean"}
-image_path = "/content/drive/MyDrive/AI/StableDiffusion/2023-01/StableFun/20230101212135_%05d.png" #@param {type:"string"}
-mp4_path = "/content/drive/MyDrive/AI/StableDiffusion/2023-01/StableFun/20230101212135.mp4" #@param {type:"string"}
-render_steps = False  #@param {type: 'boolean'}
-path_name_modifier = "x0_pred" #@param ["x0_pred","x"]
-make_gif = False
-bitdepth_extension = "exr" if args.bit_depth_output == 32 else "png"
-
-if skip_video_for_run_all == True:
-    print('Skipping video creation, uncheck skip_video_for_run_all if you want to run it')
-else:
-    import os
-    import subprocess
-    from base64 import b64encode
-
-    print(f"{image_path} -> {mp4_path}")
-
-    if use_manual_settings:
-        max_frames = "200" #@param {type:"string"}
-    else:
-        if render_steps: # render steps from a single image
-            fname = f"{path_name_modifier}_%05d.png"
-            all_step_dirs = [os.path.join(args.outdir, d) for d in os.listdir(args.outdir) if os.path.isdir(os.path.join(args.outdir,d))]
-            newest_dir = max(all_step_dirs, key=os.path.getmtime)
-            image_path = os.path.join(newest_dir, fname)
-            print(f"Reading images from {image_path}")
-            mp4_path = os.path.join(newest_dir, f"{args.timestring}_{path_name_modifier}.mp4")
-            max_frames = str(args.steps)
-        else: # render images for a video
-            image_path = os.path.join(args.outdir, f"{args.timestring}_%05d.{bitdepth_extension}")
-            mp4_path = os.path.join(args.outdir, f"{args.timestring}.mp4")
-            max_frames = str(anim_args.max_frames)
-
-    # make video
-    cmd = [
-        'ffmpeg',
-        '-y',
-        '-vcodec', bitdepth_extension,
-        '-r', str(fps),
-        '-start_number', str(0),
-        '-i', image_path,
-        '-frames:v', max_frames,
-        '-c:v', 'libx264',
-        '-vf',
-        f'fps={fps}',
-        '-pix_fmt', 'yuv420p',
-        '-crf', '17',
-        '-preset', 'veryfast',
-        '-pattern_type', 'sequence',
-        mp4_path
-    ]
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
-    if process.returncode != 0:
-        print(stderr)
-        raise RuntimeError(stderr)
-
-    mp4 = open(mp4_path,'rb').read()
-    data_url = "data:video/mp4;base64," + b64encode(mp4).decode()
-    display.display(display.HTML(f'<video controls loop><source src="{data_url}" type="video/mp4"></video>') )
-    
-    if make_gif:
-         gif_path = os.path.splitext(mp4_path)[0]+'.gif'
-         cmd_gif = [
-             'ffmpeg',
-             '-y',
-             '-i', mp4_path,
-             '-r', str(fps),
-             gif_path
-         ]
-         process_gif = subprocess.Popen(cmd_gif, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-# %%
-# !! {"metadata":{
-# !!   "cellView": "form",
 # !!   "id": "YDoi7at9avqC"
 # !! }}
-#@markdown **Alternative Version**
-skip_video_for_run_all = True #@param {type: 'boolean'}
+#@markdown **New Version**
+skip_video_for_run_all = False #@param {type: 'boolean'}
 
 if skip_video_for_run_all == True:
     print('Skipping video creation, uncheck skip_video_for_run_all if you want to run it')
@@ -566,7 +458,7 @@ else:
 # !!   },
 # !!   "gpuClass": "standard",
 # !!   "kernelspec": {
-# !!     "display_name": "Python 3.10.6 ('dsd')",
+# !!     "display_name": "Python 3.10.11 ('dsd')",
 # !!     "language": "python",
 # !!     "name": "python3"
 # !!   },
@@ -580,12 +472,12 @@ else:
 # !!     "name": "python",
 # !!     "nbconvert_exporter": "python",
 # !!     "pygments_lexer": "ipython3",
-# !!     "version": "3.10.8"
+# !!     "version": "3.10.11"
 # !!   },
 # !!   "orig_nbformat": 4,
 # !!   "vscode": {
 # !!     "interpreter": {
-# !!       "hash": "b7e04c8a9537645cbc77fa0cbde8069bc94e341b0d5ced104651213865b24e58"
+# !!       "hash": "25b221746895226ff7c6b9d8aea8c62a9e808c88b786315a5ba5e4e82d158d3f"
 # !!     }
 # !!   }
 # !! }}

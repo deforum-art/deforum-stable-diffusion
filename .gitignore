@@ -16,3 +16,6 @@ outputs/
 # Model files
 configs/
 models/
+
+# ffmpeg
+ffmpeg
