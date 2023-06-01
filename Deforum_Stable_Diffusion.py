@@ -134,7 +134,7 @@ root.model, root.device = load_model(root, load_on_run_all=True, check_sha256=Tr
 def DeforumAnimArgs():
 
     #@markdown ####**Animation:**
-    animation_mode = '3D' #@param ['None', '2D', '3D', 'Video Input', 'Interpolation'] {type:'string'}
+    animation_mode = 'None' #@param ['None', '2D', '3D', 'Video Input', 'Interpolation'] {type:'string'}
     max_frames = 1000 #@param {type:"number"}
     border = 'replicate' #@param ['wrap', 'replicate'] {type:'string'}
 
@@ -413,7 +413,7 @@ else:
 # !!   "id": "YDoi7at9avqC"
 # !! }}
 #@markdown **New Version**
-skip_video_for_run_all = False #@param {type: 'boolean'}
+skip_video_for_run_all = True #@param {type: 'boolean'}
 
 if skip_video_for_run_all == True:
     print('Skipping video creation, uncheck skip_video_for_run_all if you want to run it')

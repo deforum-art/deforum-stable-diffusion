@@ -3,13 +3,16 @@ import platform
 import subprocess
 
 
-def pip_install_packages(packages, extra_index_url=None, verbose=False):
+def pip_install_packages(packages, extra_index_url=None, verbose=False, pre=False):
     for package in packages:
         try:
             print(f"..installing {package}")
             
             # base command
             cmd = ["pip", "install"]
+
+            if pre:
+                cmd.append(["--pre"])
 
             # add '-q' if not verbose
             if not verbose:
@@ -47,8 +50,8 @@ def install_requirements(verbose=False):
         "torchvision",
         "torchaudio"
     ]
-    extra_index_url = "https://download.pytorch.org/whl/cu117" if os_system == 'Windows' else None
-    pip_install_packages(torch, extra_index_url=extra_index_url, verbose=verbose)
+    extra_index_url = "https://download.pytorch.org/whl/nightly/cu121"
+    pip_install_packages(torch, extra_index_url=extra_index_url, verbose=verbose, pre=True)
 
     # List of common packages to install
     common = [
