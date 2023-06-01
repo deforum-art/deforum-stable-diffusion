@@ -42,7 +42,7 @@ def setup_environment():
         start_time = time.time()
         packages = [
             'torch==2.0.0 torchvision torchaudio triton xformers',
-            'einops==0.4.1 pytorch-lightning==1.7.7 torchdiffeq torchsde omegaconf',
+            'einops==0.4.1 pytorch-lightning==1.7.7 torchdiffeq==0.2.3 torchsde==0.2.5',
             'ftfy timm transformers open-clip-torch omegaconf torchmetrics',
             'safetensors kornia accelerate jsonmerge matplotlib resize-right',
             'scikit-learn numpngw'
@@ -50,7 +50,7 @@ def setup_environment():
         for package in packages:
             print(f"..installing {package}")
             subprocess.check_call([sys.executable, '-m', 'pip', 'install'] + package.split())
-        subprocess.check_call(['git', 'clone', 'https://github.com/deforum-art/deforum-stable-diffusion.git'])
+        subprocess.check_call(['git', 'clone', '-b', '0.7.1', 'https://github.com/deforum-art/deforum-stable-diffusion.git'])
         with open('deforum-stable-diffusion/src/k_diffusion/__init__.py', 'w') as f:
             f.write('')
         sys.path.extend(['deforum-stable-diffusion/','deforum-stable-diffusion/src',])
@@ -76,19 +76,30 @@ from helpers.aesthetics import load_aesthetics_model
 # %%
 # !! {"metadata":{
 # !!   "cellView": "form",
-# !!   "id": "0D2HQO-PWM_t"
+# !!   "id": "tQPlBfq9fIj8"
 # !! }}
 #@markdown **Path Setup**
 
-def Root():
+def PathSetup():
     models_path = "models" #@param {type:"string"}
     configs_path = "configs" #@param {type:"string"}
     output_path = "outputs" #@param {type:"string"}
     mount_google_drive = True #@param {type:"boolean"}
     models_path_gdrive = "/content/drive/MyDrive/AI/models" #@param {type:"string"}
     output_path_gdrive = "/content/drive/MyDrive/AI/StableDiffusion" #@param {type:"string"}
+    return locals()
 
-    #@markdown **Model Setup**
+root = SimpleNamespace(**PathSetup())
+root.models_path, root.output_path = get_model_output_paths(root)
+
+# %%
+# !! {"metadata":{
+# !!   "cellView": "form",
+# !!   "id": "232_xKcCfIj9"
+# !! }}
+#@markdown **Model Setup**
+
+def ModelSetup():
     map_location = "cuda" #@param ["cpu", "cuda"]
     model_config = "v1-inference.yaml" #@param ["custom","v2-inference.yaml","v2-inference-v.yaml","v1-inference.yaml"]
     model_checkpoint =  "Protogen_V2.2.ckpt" #@param ["custom","v2-1_768-ema-pruned.ckpt","v2-1_512-ema-pruned.ckpt","768-v-ema.ckpt","512-base-ema.ckpt","Protogen_V2.2.ckpt","v1-5-pruned.ckpt","v1-5-pruned-emaonly.ckpt","sd-v1-4-full-ema.ckpt","sd-v1-4.ckpt","sd-v1-3-full-ema.ckpt","sd-v1-3.ckpt","sd-v1-2-full-ema.ckpt","sd-v1-2.ckpt","sd-v1-1-full-ema.ckpt","sd-v1-1.ckpt", "robo-diffusion-v1.ckpt","wd-v1-3-float16.ckpt"]
@@ -96,11 +107,9 @@ def Root():
     custom_checkpoint_path = "" #@param {type:"string"}
     return locals()
 
-root = Root()
-root = SimpleNamespace(**root)
-
-root.models_path, root.output_path = get_model_output_paths(root)
+root.__dict__.update(ModelSetup())
 root.model, root.device = load_model(root, load_on_run_all=True, check_sha256=True, map_location=root.map_location)
+
 
 # %%
 # !! {"metadata":{
@@ -426,8 +435,8 @@ else:
 
     ffmpeg_args_dict = ffmpegArgs()
     ffmpeg_args = SimpleNamespace(**ffmpeg_args_dict)
-    make_mp4_ffmpeg(ffmpeg_args, display_ffmpeg=False, debug=True)
-    make_gif_ffmpeg(ffmpeg_args, debug=True)
+    make_mp4_ffmpeg(ffmpeg_args, display_ffmpeg=True, debug=False)
+    make_gif_ffmpeg(ffmpeg_args, debug=False)
     #patrol_cycle(args,ffmpeg_args)
 
 # %%
