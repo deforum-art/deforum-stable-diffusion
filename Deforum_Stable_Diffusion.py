@@ -74,7 +74,10 @@ from helpers.model_load import make_linear_decode, load_model, get_model_output_
 from helpers.aesthetics import load_aesthetics_model
 
 # %%
-# !! {"metadata":# !! {}
+# !! {"metadata":{
+# !!   "cellView": "form",
+# !!   "id": "IQozFNK2ecrf"
+# !! }}
 #@markdown **Path Setup**
 
 def PathSetup():
@@ -90,7 +93,10 @@ path_root = PathSetup()
 path_root.models_path, path_root.output_path = get_model_output_paths(path_root)
 
 # %%
-# !! {"metadata":# !! {}
+# !! {"metadata":{
+# !!   "cellView": "form",
+# !!   "id": "t5jeLGylecrf"
+# !! }}
 #@markdown **Model Setup**
 
 def ModelSetup():
@@ -122,7 +128,7 @@ root.model, root.device = load_model(root, load_on_run_all=True, check_sha256=Tr
 def DeforumAnimArgs():
 
     #@markdown ####**Animation:**
-    animation_mode = '3D' #@param ['None', '2D', '3D', 'Video Input', 'Interpolation'] {type:'string'}
+    animation_mode = 'None' #@param ['None', '2D', '3D', 'Video Input', 'Interpolation'] {type:'string'}
     max_frames = 1000 #@param {type:"number"}
     border = 'replicate' #@param ['wrap', 'replicate'] {type:'string'}
 
