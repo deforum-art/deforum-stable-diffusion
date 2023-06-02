@@ -57,7 +57,10 @@ def setup_environment():
         for package in packages:
             print(f"..installing {package}")
             subprocess.check_call([sys.executable, '-m', 'pip', 'install'] + package.split())
-        subprocess.check_call(['git', 'clone', '-b', '0.7.1', 'https://github.com/deforum-art/deforum-stable-diffusion.git'])
+        if not os.path.exists("deforum-stable-diffusion"):
+            subprocess.check_call(['git', 'clone', '-b', '0.7.1', 'https://github.com/deforum-art/deforum-stable-diffusion.git'])
+        else:
+            print(f"..deforum-stable-diffusion already exists")
         with open('deforum-stable-diffusion/src/k_diffusion/__init__.py', 'w') as f:
             f.write('')
         sys.path.extend(['deforum-stable-diffusion/','deforum-stable-diffusion/src',])

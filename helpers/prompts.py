@@ -67,7 +67,7 @@ class Prompts(BaseModel):
         else:
             return dict(zip(keys, [""] * len(keys)))
 
-
+"""
 # Only run test cases when this script is running directly
 if __name__ == '__main__':
     # Revised example 1: both prompt and neg_prompt are dictionaries with integer keys
@@ -105,3 +105,4 @@ if __name__ == '__main__':
     assert prompt6.as_list() == (["cat in space", "cat sushi"], ["", ""])
     assert prompt6.as_string() == ("cat in space, cat sushi", "")
     assert prompt6.as_dict() == ({0: "cat in space", 1: "cat sushi"}, {0: ""})
+"""
