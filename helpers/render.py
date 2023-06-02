@@ -20,6 +20,7 @@ from .colors import maintain_colors
 from .load_images import prepare_overlay_mask
 from .hybrid_video import hybrid_generation, hybrid_composite
 from .hybrid_video import get_matrix_for_hybrid_motion, get_matrix_for_hybrid_motion_prev, get_flow_for_hybrid_motion, get_flow_for_hybrid_motion_prev, image_transform_ransac, image_transform_optical_flow
+from .interpolation import interpolate
 
 try:
     from numpngw import write_png
@@ -561,9 +562,10 @@ def render_input_video(root, anim_args, args, cond_prompts, uncond_prompts):
 
     render_animation(root, anim_args, args, cond_prompts, uncond_prompts)
 
-def render_interpolation(args, anim_args, animation_prompts, root):
+def render_interpolation(root, anim_args, args, cond_prompts, uncond_prompts):
+
     # animations use key framed prompts
-    args.prompts = animation_prompts
+    args.cond_prompts = cond_prompts
 
     # create output folder for the batch
     os.makedirs(args.outdir, exist_ok=True)
@@ -582,9 +584,10 @@ def render_interpolation(args, anim_args, animation_prompts, root):
 
     print(f"Preparing for interpolation of the following...")
 
-    for i, prompt in animation_prompts.items():
-        args.prompt = prompt
-        args.clip_prompt = args.prompt
+    for i, prompt in cond_prompts.items():
+        
+        args.cond_prompt = prompt
+        args.clip_prompt = args.cond_prompt
 
         # sample the diffusion model
         results = generate(args, root, return_c=True)
@@ -607,7 +610,7 @@ def render_interpolation(args, anim_args, animation_prompts, root):
 
     if anim_args.interpolate_key_frames:
         for i in range(len(prompts_c_s)-1):
-            dist_frames = list(animation_prompts.items())[i+1][0] - list(animation_prompts.items())[i][0]
+            dist_frames = list(cond_prompts.items())[i+1][0] - list(cond_prompts.items())[i][0]
             if dist_frames <= 0:
                 print("key frames duplicated or reversed. interpolation skipped.")
                 return
@@ -615,8 +618,9 @@ def render_interpolation(args, anim_args, animation_prompts, root):
             for j in range(dist_frames):
                 # interpolate the text embedding
                 prompt1_c = prompts_c_s[i]
-                prompt2_c = prompts_c_s[i+1]  
-                args.init_c = prompt1_c.add(prompt2_c.sub(prompt1_c).mul(j * 1/dist_frames))
+                prompt2_c = prompts_c_s[i+1]
+                t = j * 1.0 / dist_frames
+                args.init_c = interpolate(t, prompt1_c, prompt2_c, mode="slerp")
 
                 # sample the diffusion model
                 results = generate(args, root)
