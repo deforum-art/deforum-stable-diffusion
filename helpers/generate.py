@@ -1,27 +1,27 @@
+# Standard library imports
+import os
+
+# Related third-party imports
 import torch
-from PIL import Image
-import requests
 import numpy as np
+from PIL import Image
 import torchvision.transforms.functional as TF
 from pytorch_lightning import seed_everything
-import os
-from ldm.models.diffusion.plms import PLMSSampler
-from ldm.models.diffusion.ddim import DDIMSampler
-from k_diffusion.external import CompVisDenoiser, CompVisVDenoiser
 from torch import autocast
 from contextlib import nullcontext
 from einops import rearrange, repeat
 
-from .prompt import get_uc_and_c
+# Local application/library specific imports
 from .k_samplers import sampler_fn, make_inject_timing_fn
-from scipy.ndimage import gaussian_filter
-
 from .callback import SamplerCallback
-
 from .conditioning import exposure_loss, make_mse_loss, get_color_palette, make_clip_loss_fn
 from .conditioning import make_rgb_color_match_loss, blue_loss_fn, threshold_by, make_aesthetics_loss_fn, mean_loss_fn, var_loss_fn, exposure_loss
 from .model_wrap import CFGDenoiserWithGrad
-from .load_images import load_img, load_mask_latent, prepare_mask, prepare_overlay_mask
+from .load_images import load_img, prepare_mask, prepare_overlay_mask
+from ldm.models.diffusion.plms import PLMSSampler
+from ldm.models.diffusion.ddim import DDIMSampler
+from k_diffusion.external import CompVisDenoiser, CompVisVDenoiser
+
 
 def add_noise(sample: torch.Tensor, noise_amt: float) -> torch.Tensor:
     return sample + torch.randn(sample.shape, device=sample.device) * noise_amt
