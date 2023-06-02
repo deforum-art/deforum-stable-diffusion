@@ -52,7 +52,7 @@ def setup_environment():
             'einops==0.4.1 pytorch-lightning==1.7.7 torchdiffeq==0.2.3 torchsde==0.2.5',
             'ftfy timm transformers open-clip-torch omegaconf torchmetrics',
             'safetensors kornia accelerate jsonmerge matplotlib resize-right',
-            'scikit-learn numpngw'
+            'scikit-learn numpngw pydantic'
         ]
         for package in packages:
             print(f"..installing {package}")
@@ -79,6 +79,7 @@ from helpers.settings import load_args
 from helpers.render import render_animation, render_input_video, render_image_batch, render_interpolation
 from helpers.model_load import make_linear_decode, load_model, get_model_output_paths
 from helpers.aesthetics import load_aesthetics_model
+from helpers.prompts import Prompts
 
 # %%
 # !! {"metadata":{
@@ -116,7 +117,6 @@ def ModelSetup():
 
 root.__dict__.update(ModelSetup())
 root.model, root.device = load_model(root, load_on_run_all=True, check_sha256=True, map_location=root.map_location)
-
 
 # %%
 # !! {"metadata":{
@@ -222,17 +222,22 @@ def DeforumAnimArgs():
 # !! {"metadata":{
 # !!   "id": "i9fly1RIWM_u"
 # !! }}
-# conditional (postitive) prompts
-cond_prompts = {
+# prompts
+prompts = {
     0: "a beautiful lake by Asher Brown Durand, trending on Artstation",
-    20: "a beautiful portrait of a woman by Artgerm, trending on Artstation",
+    10: "a beautiful portrait of a woman by Artgerm, trending on Artstation",
 }
 
-# unconditional (negative) prompts
-uncond_prompts = {
+neg_prompts = {
     0: "mountain",
-    20: "",
 }
+
+# can be a string, list, or dictionary
+#prompts = [
+#    "a beautiful lake by Asher Brown Durand, trending on Artstation",
+#    "a beautiful portrait of a woman by Artgerm, trending on Artstation",
+#]
+#prompts = "a beautiful lake by Asher Brown Durand, trending on Artstation"
 
 # %%
 # !! {"metadata":{
@@ -389,15 +394,18 @@ elif anim_args.animation_mode == 'Video Input':
 gc.collect()
 torch.cuda.empty_cache()
 
+# get prompts
+cond, uncond = Prompts(prompt=prompts,neg_prompt=neg_prompts).as_dict()
+
 # dispatch to appropriate renderer
 if anim_args.animation_mode == '2D' or anim_args.animation_mode == '3D':
-    render_animation(root, anim_args, args, cond_prompts, uncond_prompts)
+    render_animation(root, anim_args, args, cond, uncond)
 elif anim_args.animation_mode == 'Video Input':
-    render_input_video(root, anim_args, args, cond_prompts, uncond_prompts)
+    render_input_video(root, anim_args, args, cond, uncond)
 elif anim_args.animation_mode == 'Interpolation':
-    render_interpolation(root, anim_args, args, cond_prompts, uncond_prompts)
+    render_interpolation(root, anim_args, args, cond, uncond)
 else:
-    render_image_batch(root, args, cond_prompts, uncond_prompts)
+    render_image_batch(root, args, cond, uncond)
 
 # %%
 # !! {"metadata":{

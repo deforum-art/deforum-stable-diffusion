@@ -87,6 +87,7 @@ def install_requirements(verbose=False):
         "open-clip-torch",
         "torchsde",
         "ninja",
+        "pydantic",
     ]
     pip_install_packages(common)
 
