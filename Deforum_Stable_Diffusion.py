@@ -425,6 +425,7 @@ else:
 # !! }}
 #@markdown **New Version**
 skip_video_for_run_all = False #@param {type: 'boolean'}
+create_gif = False #@param {type: 'boolean'}
 
 if skip_video_for_run_all == True:
     print('Skipping video creation, uncheck skip_video_for_run_all if you want to run it')
@@ -454,7 +455,8 @@ else:
     ffmpeg_args_dict = ffmpegArgs()
     ffmpeg_args = SimpleNamespace(**ffmpeg_args_dict)
     make_mp4_ffmpeg(ffmpeg_args, display_ffmpeg=True, debug=False)
-    make_gif_ffmpeg(ffmpeg_args, debug=False)
+    if create_gif:
+        make_gif_ffmpeg(ffmpeg_args, debug=False)
     #patrol_cycle(args,ffmpeg_args)
 
 # %%
