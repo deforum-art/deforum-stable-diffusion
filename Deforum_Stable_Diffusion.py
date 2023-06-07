@@ -425,6 +425,7 @@ else:
 # !! }}
 #@markdown **New Version**
 skip_video_for_run_all = False #@param {type: 'boolean'}
+create_gif = False #@param {type: 'boolean'}
 
 if skip_video_for_run_all == True:
     print('Skipping video creation, uncheck skip_video_for_run_all if you want to run it')
