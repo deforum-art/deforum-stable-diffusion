@@ -50,9 +50,9 @@ class Prompts(BaseModel):
         if isinstance(prompt, str):
             return [prompt]*length
         elif isinstance(prompt, list):
-            return prompt
+            return prompt if prompt else [""] * length
         elif isinstance(prompt, dict):
-            return list(prompt.values())
+            return list(prompt.values()) if prompt else [""] * length
         else:
             return [""] * length
 
@@ -61,9 +61,9 @@ class Prompts(BaseModel):
         if isinstance(prompt, str):
             return {keys[0]: prompt}
         elif isinstance(prompt, list):
-            return dict(zip(range(len(prompt)), prompt))
+            return dict(zip(range(len(prompt)), prompt)) if prompt else {0: ""}
         elif isinstance(prompt, dict):
-            return prompt
+            return prompt if prompt else {0: ""}
         else:
             return dict(zip(keys, [""] * len(keys)))
 

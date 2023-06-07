@@ -137,7 +137,7 @@ root.model, root.device = load_model(root, load_on_run_all=True, check_sha256=Tr
 def DeforumAnimArgs():
 
     #@markdown ####**Animation:**
-    animation_mode = 'Interpolation' #@param ['None', '2D', '3D', 'Video Input', 'Interpolation'] {type:'string'}
+    animation_mode = 'Video Input' #@param ['None', '2D', '3D', 'Video Input', 'Interpolation'] {type:'string'}
     max_frames = 1000 #@param {type:"number"}
     border = 'replicate' #@param ['wrap', 'replicate'] {type:'string'}
 
