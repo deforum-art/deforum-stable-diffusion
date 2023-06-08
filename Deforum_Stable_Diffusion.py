@@ -424,7 +424,7 @@ else:
 # !!   "id": "YDoi7at9avqC"
 # !! }}
 #@markdown **New Version**
-skip_video_for_run_all = False #@param {type: 'boolean'}
+skip_video_for_run_all = True #@param {type: 'boolean'}
 create_gif = False #@param {type: 'boolean'}
 
 if skip_video_for_run_all == True:

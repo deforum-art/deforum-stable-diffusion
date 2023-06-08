@@ -12,7 +12,7 @@ def pip_install_packages(packages, extra_index_url=None, verbose=False, pre=Fals
             cmd = ["pip", "install"]
 
             if pre:
-                cmd.append(["--pre"])
+                cmd.append("--pre")
 
             # add '-q' if not verbose
             if not verbose:
@@ -24,6 +24,9 @@ def pip_install_packages(packages, extra_index_url=None, verbose=False, pre=Fals
             # add extra_index_url if it exists
             if extra_index_url:
                 cmd.extend(["--extra-index-url", extra_index_url])
+
+            if verbose:
+                print(cmd)
 
             # run the command and capture output
             result = subprocess.run(cmd, capture_output=not verbose, text=True)
@@ -91,18 +94,16 @@ def install_requirements(verbose=False):
     ]
     pip_install_packages(common)
 
-
     # Xformers install
     linux_xformers = [
         "triton",
-        "xformers",
+        "xformers==0.0.21.dev546",
     ]
     windows_xformers = [
-        "xformers",
+        "xformers==0.0.21.dev546",
     ]
     xformers = windows_xformers if os_system == 'Windows' else linux_xformers
     pip_install_packages(xformers)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
