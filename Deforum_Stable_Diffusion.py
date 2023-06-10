@@ -48,7 +48,7 @@ def setup_environment():
     if 'google.colab' in str(ipy):
         start_time = time.time()
         packages = [
-            'triton xformers==0.0.21.dev542',
+            'triton xformers==0.0.21.dev547',
             'einops==0.4.1 pytorch-lightning==1.7.7 torchdiffeq==0.2.3 torchsde==0.2.5',
             'ftfy timm transformers open-clip-torch omegaconf torchmetrics',
             'safetensors kornia accelerate jsonmerge matplotlib resize-right',
