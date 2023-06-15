@@ -26,6 +26,7 @@ from helpers.model_load import (
     make_linear_decode,
 )
 from helpers.aesthetics import load_aesthetics_model
+from helpers.prompts import Prompts
 
 
 MODEL_CACHE = "diffusion_models_cache"
@@ -481,14 +482,19 @@ class Predictor(BasePredictor):
         # clean up unused memory
         gc.collect()
         torch.cuda.empty_cache()
+        
+        # get prompts
+        cond, uncond = Prompts(prompt=prompts,neg_prompt=neg_prompts).as_dict()
 
         # dispatch to appropriate renderer
-        if anim_args.animation_mode == "2D" or anim_args.animation_mode == "3D":
-            render_animation(args, anim_args, animation_prompts, root)
-        elif anim_args.animation_mode == "Video Input":
-            render_input_video(args, anim_args, animation_prompts, root)
-        elif anim_args.animation_mode == "Interpolation":
-            render_interpolation(args, anim_args, animation_prompts, root)
+        if anim_args.animation_mode == "2D" or anim_args.animation_mode == "3D":            
+            render_animation(root, anim_args, args, cond, uncond)
+        elif anim_args.animation_mode == "Video Input":            
+            render_input_video(root, anim_args, args, cond, uncond)
+        elif anim_args.animation_mode == "Interpolation":            
+            render_interpolation(root, anim_args, args, cond, uncond)
+        else:
+            render_image_batch(root, args, cond, uncond)
 
         # make video
         image_path = os.path.join(args.outdir, f"{args.timestring}_%05d.png")
