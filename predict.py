@@ -72,6 +72,10 @@ class Predictor(BasePredictor):
             default="0: a beautiful apple, trending on Artstation | 50: a beautiful banana, trending on Artstation | 100: a beautiful coconut, trending on Artstation | 150: a beautiful durian, trending on Artstation",
             description="Prompt for animation. Provide 'frame number : prompt at this frame', separate different prompts with '|'. Make sure the frame number does not exceed the max_frames.",
         ),
+        negative_prompts: str = Input(
+            default="0: mountain",
+            description="Prompt for negative. Provide 'frame number : prompt at this frame', separate different prompts with '|'. Make sure the frame number does not exceed the max_frames.",
+        ),
         width: int = Input(
             description="Width of output video. Reduce if out of memory.",
             choices=[128, 256, 384, 448, 512, 576, 640, 704, 768, 832, 896, 960, 1024],
@@ -484,7 +488,7 @@ class Predictor(BasePredictor):
         torch.cuda.empty_cache()
         
         # get prompts
-        cond, uncond = Prompts(prompt=prompts,neg_prompt=neg_prompts).as_dict()
+        cond, uncond = Prompts(prompt=animation_prompts,neg_prompt=negative_prompts).as_dict()
 
         # dispatch to appropriate renderer
         if anim_args.animation_mode == "2D" or anim_args.animation_mode == "3D":            
