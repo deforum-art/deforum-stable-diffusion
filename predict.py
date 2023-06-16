@@ -445,9 +445,7 @@ class Predictor(BasePredictor):
             "interpolate_key_frames": interpolate_key_frames,
             "interpolate_x_frames": interpolate_x_frames,
             "resume_from_timestring": resume_from_timestring,
-            "resume_timestring": resume_timestring,
-
-            
+            "resume_timestring": resume_timestring,            
         }
 
         args = SimpleNamespace(**args_dict)
