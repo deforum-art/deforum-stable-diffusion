@@ -384,9 +384,12 @@ class Predictor(BasePredictor):
         }
 
         anim_args_dict = {
+            # Animation
             "animation_mode": animation_mode,
             "max_frames": max_frames,
             "border": border,
+
+            #Motion Parameters
             "angle": angle,
             "zoom": zoom,
             "translation_x": translation_x,
@@ -403,11 +406,11 @@ class Predictor(BasePredictor):
             "noise_schedule": noise_schedule,
             "strength_schedule": strength_schedule,
             "contrast_schedule": contrast_schedule,
-            "hybrid_video_comp_alpha_schedule": hybrid_video_comp_alpha_schedule,
-            "hybrid_video_comp_mask_blend_alpha_schedule": hybrid_video_comp_mask_blend_alpha_schedule,
-            "hybrid_video_comp_mask_contrast_schedule": hybrid_video_comp_mask_contrast_schedule,
-            "hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule": hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule,
-            "hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule": hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule,
+            "hybrid_comp_alpha_schedule": hybrid_video_comp_alpha_schedule,
+            "hybrid_comp_mask_blend_alpha_schedule": hybrid_video_comp_mask_blend_alpha_schedule,
+            "hybrid_comp_mask_contrast_schedule": hybrid_video_comp_mask_contrast_schedule,
+            "hybrid_comp_mask_auto_contrast_cutoff_high_schedule": hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule,
+            "hybrid_comp_mask_auto_contrast_cutoff_low_schedule": hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule,
             "kernel_schedule": kernel_schedule,
             "sigma_schedule": sigma_schedule,
             "amount_schedule": amount_schedule,
@@ -428,21 +431,23 @@ class Predictor(BasePredictor):
             "overwrite_extracted_frames": overwrite_extracted_frames,
             "use_mask_video": use_mask_video,
             "video_mask_path": str(video_mask_path),
-            "hybrid_video_generate_inputframes": hybrid_video_generate_inputframes,
-            "hybrid_video_use_first_frame_as_init_image": hybrid_video_use_first_frame_as_init_image,
-            "hybrid_video_motion": hybrid_video_motion,
-            "hybrid_video_flow_method": hybrid_video_flow_method,
-            "hybrid_video_composite": hybrid_video_composite,
-            "hybrid_video_comp_mask_type": hybrid_video_comp_mask_type,
-            "hybrid_video_comp_mask_inverse": hybrid_video_comp_mask_inverse,
-            "hybrid_video_comp_mask_equalize": hybrid_video_comp_mask_equalize,
-            "hybrid_video_comp_mask_auto_contrast": hybrid_video_comp_mask_auto_contrast,
-            "hybrid_video_comp_save_extra_frames": hybrid_video_comp_save_extra_frames,
-            "hybrid_video_use_video_as_mse_image": hybrid_video_use_video_as_mse_image,
+            "hybrid_generate_inputframes": hybrid_video_generate_inputframes,
+            "hybrid_use_first_frame_as_init_image": hybrid_video_use_first_frame_as_init_image,
+            "hybrid_motion": hybrid_video_motion,
+            "hybrid_flow_method": hybrid_video_flow_method,
+            "hybrid_composite": hybrid_video_composite,
+            "hybrid_comp_mask_type": hybrid_video_comp_mask_type,
+            "hybrid_comp_mask_inverse": hybrid_video_comp_mask_inverse,
+            "hybrid_comp_mask_equalize": hybrid_video_comp_mask_equalize,
+            "hybrid_comp_mask_auto_contrast": hybrid_video_comp_mask_auto_contrast,
+            "hybrid_comp_save_extra_frames": hybrid_video_comp_save_extra_frames,
+            "hybrid_use_video_as_mse_image": hybrid_video_use_video_as_mse_image,
             "interpolate_key_frames": interpolate_key_frames,
             "interpolate_x_frames": interpolate_x_frames,
             "resume_from_timestring": resume_from_timestring,
             "resume_timestring": resume_timestring,
+
+            
         }
 
         args = SimpleNamespace(**args_dict)
