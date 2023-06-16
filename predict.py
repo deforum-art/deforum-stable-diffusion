@@ -184,6 +184,12 @@ class Predictor(BasePredictor):
         hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule: str = Input(
             default="0:(0)"
         ),
+
+        enable_schedule_samplers: bool = Input(default=False),
+        sampler_schedule:   str = Input(
+            default="0:('euler'),10:('dpm2'),20:('dpm2_ancestral'),30:('heun'),40:('euler'),50:('euler_ancestral'),60:('dpm_fast'),70:('dpm_adaptive'),80:('dpmpp_2s_a'),90:('dpmpp_2m')"
+        ),          
+
         kernel_schedule: str = Input(default="0: (5)"),
         sigma_schedule: str = Input(default="0: (1.0)"),
         amount_schedule: str = Input(default="0: (0.2)"),
@@ -411,10 +417,18 @@ class Predictor(BasePredictor):
             "hybrid_comp_mask_contrast_schedule": hybrid_video_comp_mask_contrast_schedule,
             "hybrid_comp_mask_auto_contrast_cutoff_high_schedule": hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule,
             "hybrid_comp_mask_auto_contrast_cutoff_low_schedule": hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule,
+
+            #Sampler Scheduling
+            "enable_schedule_samplers":enable_schedule_samplers,
+            "sampler_schedule": sampler_schedule ,
+
+            # Unsharp mask (anti-blur) Parmaters
             "kernel_schedule": kernel_schedule,
             "sigma_schedule": sigma_schedule,
             "amount_schedule": amount_schedule,
             "threshold_schedule": threshold_schedule,
+            
+            # Coherence
             "color_coherence": color_coherence,
             "color_coherence_video_every_N_frames": color_coherence_video_every_N_frames,
             "diffusion_cadence": diffusion_cadence,
@@ -426,6 +440,8 @@ class Predictor(BasePredictor):
             "padding_mode": padding_mode,
             "sampling_mode": sampling_mode,
             "save_depth_maps": False,
+            
+            # Video Input
             "video_init_path": str(video_init_path),
             "extract_nth_frame": extract_nth_frame,
             "overwrite_extracted_frames": overwrite_extracted_frames,
