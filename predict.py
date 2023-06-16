@@ -204,6 +204,7 @@ class Predictor(BasePredictor):
             default="Match Frame 0 LAB",
         ),
         color_coherence_video_every_N_frames: int = Input(default=1),
+        color_force_grayscale: bool = Input(default=False),
         diffusion_cadence: str = Input(
             choices=["1", "2", "3", "4", "5", "6", "7", "8"],
             default="1",
@@ -431,7 +432,10 @@ class Predictor(BasePredictor):
             # Coherence
             "color_coherence": color_coherence,
             "color_coherence_video_every_N_frames": color_coherence_video_every_N_frames,
+            "color_force_grayscale": color_force_grayscale,
             "diffusion_cadence": diffusion_cadence,
+            
+            # 3D Depth Waping
             "use_depth_warping": use_depth_warping,
             "midas_weight": midas_weight,
             "near_plane": near_plane,
@@ -447,6 +451,8 @@ class Predictor(BasePredictor):
             "overwrite_extracted_frames": overwrite_extracted_frames,
             "use_mask_video": use_mask_video,
             "video_mask_path": str(video_mask_path),
+
+            # Hybrid Video for 2D/3D Animation Mode
             "hybrid_generate_inputframes": hybrid_video_generate_inputframes,
             "hybrid_use_first_frame_as_init_image": hybrid_video_use_first_frame_as_init_image,
             "hybrid_motion": hybrid_video_motion,
@@ -458,8 +464,12 @@ class Predictor(BasePredictor):
             "hybrid_comp_mask_auto_contrast": hybrid_video_comp_mask_auto_contrast,
             "hybrid_comp_save_extra_frames": hybrid_video_comp_save_extra_frames,
             "hybrid_use_video_as_mse_image": hybrid_video_use_video_as_mse_image,
+
+            # Interpolation
             "interpolate_key_frames": interpolate_key_frames,
             "interpolate_x_frames": interpolate_x_frames,
+
+            # Resume Animation
             "resume_from_timestring": resume_from_timestring,
             "resume_timestring": resume_timestring,            
         }
