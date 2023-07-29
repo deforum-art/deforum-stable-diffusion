@@ -48,7 +48,7 @@ def setup_environment():
     if 'google.colab' in str(ipy):
         start_time = time.time()
         packages = [
-            'triton xformers==0.0.21.dev560',
+            'triton xformers==0.0.21.dev575',
             'einops==0.4.1 pytorch-lightning==1.7.7 torchdiffeq==0.2.3 torchsde==0.2.5',
             'ftfy timm transformers open-clip-torch omegaconf torchmetrics==0.11.4',
             'safetensors kornia accelerate jsonmerge matplotlib resize-right',
@@ -137,7 +137,7 @@ root.model, root.device = load_model(root, load_on_run_all=True, check_sha256=Tr
 def DeforumAnimArgs():
 
     #@markdown ####**Animation:**
-    animation_mode = 'none' #@param ['None', '2D', '3D', 'Video Input', 'Interpolation'] {type:'string'}
+    animation_mode = 'None' #@param ['None', '2D', '3D', 'Video Input', 'Interpolation'] {type:'string'}
     max_frames = 1000 #@param {type:"number"}
     border = 'replicate' #@param ['wrap', 'replicate'] {type:'string'}
 
