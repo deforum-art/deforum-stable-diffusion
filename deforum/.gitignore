@@ -1,0 +1,22 @@
+# Unnecessary compiled python files.
+__pycache__
+*.pyc
+*.pyo
+
+# Log files for colab-convert
+cc-outputs.log
+
+# Jupyter autosaves
+.ipynb_checkpoints/
+
+# Output Images
+output/
+outputs/
+
+# Model files
+configs/
+models/
+
+# ffmpeg
+ffmpeg
+.empty
