@@ -22,29 +22,34 @@ RUN ln -s /usr/bin/python3.10 /usr/bin/python && \
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python get-pip.py
 
-RUN pip install --upgrade --no-cache-dir pip
-RUN pip install --upgrade --no-cache-dir torch==2.0.1+cu118 torchvision==0.15.2+cu118 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu118
-RUN pip install --upgrade --no-cache-dir jupyterlab ipywidgets jupyter-archive jupyter_contrib_nbextensions
+# RUN pip install --upgrade --no-cache-dir torch==2.0.1+cu118 torchvision==0.15.2+cu118 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu118
+
+RUN pip install --upgrade --no-cache-dir --pre torch --extra-index-url https://download.pytorch.org/whl/nightly/cu121
+RUN pip install --upgrade --no-cache-dir --pre torchvision --extra-index-url https://download.pytorch.org/whl/nightly/cu121
+RUN pip install --upgrade --no-cache-dir --pre torchaudio --extra-index-url https://download.pytorch.org/whl/nightly/cu121
+
+#RUN pip install --upgrade --no-cache-dir torch==2.0.1+cu118 torchvision==0.15.2+cu118 torchaudio==2.0.2 --extra-index-url https://download.pytorch.org/whl/nightly/cu121
+#RUN pip install --upgrade --no-cache-dir jupyterlab ipywidgets jupyter-archive jupyter_contrib_nbextensions
 
 # Set up Jupyter Notebook
 # RUN pip install notebook==6.5.5
 # RUN jupyter contrib nbextension install --user && \
 #     jupyter nbextension enable --py widgetsnbextension
 
-WORKDIR /
+RUN pip install --no-cache-dir clean-fid colab-convert einops ftfy ipython ipywidgets jsonmerge jupyterlab jupyter_http_over_ws kornia matplotlib notebook numexpr omegaconf opencv-python pandas pytorch_lightning==1.7.7 resize-right scikit-image==0.19.3 scikit-learn timm torchdiffeq transformers==4.19.2 safetensors albumentations more_itertools devtools validators numpngw open-clip-torch torchsde ninja pydantic triton xformers torchmetrics==0.11.4
 
-COPY . .
-
-RUN python -u /deforum/install_requirements.py
-
-RUN python -m pip install torchmetrics==0.11.4
+# RUN python -m pip install torchmetrics==0.11.4
 
 # NGINX Proxy
 # COPY --from=proxy nginx.conf /etc/nginx/nginx.conf
 # COPY --from=proxy readme.html /usr/share/nginx/html/readme.html
+WORKDIR /
 
+COPY . .
 COPY /proxy/nginx.conf /etc/nginx/nginx.conf
 COPY /proxy/readme.html /usr/share/nginx/html/readme.html
+
+ENV PYTHONPATH /deforum/src/
 
 RUN chmod +x /start.sh
 

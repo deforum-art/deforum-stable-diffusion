@@ -6,10 +6,10 @@ set -e  # Exit the script if any statement returns a non-true return value
 # ---------------------------------------------------------------------------- #
 
 # Start nginx service
-# start_nginx() {
-#     echo "Starting Nginx service..."
-#     service nginx start
-# }
+start_nginx() {
+    echo "Starting Nginx service..."
+    service nginx start
+}
 
 # Execute script if exists
 execute_script() {
@@ -54,7 +54,7 @@ setup_ssh() {
 #                               Main Program                                   #
 # ---------------------------------------------------------------------------- #
 
-# start_nginx
+start_nginx
 
 # execute_script "/pre_start.sh" "Running pre-start script..."
 
@@ -66,6 +66,8 @@ setup_ssh
 
 # execute_script "/post_start.sh" "Running post-start script..."
 
-python -u /content/deforum/Deforum_Stable_Diffusion.py
+# python -u /deforum/Deforum_Stable_Diffusion.py
 
-sleep infinity
+tail -f /dev/null
+
+# sleep infinity
