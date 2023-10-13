@@ -294,11 +294,11 @@ class DeformAnimKeys():
         self.sigma_schedule_series = get_inbetweens(parse_key_frames(anim_args.sigma_schedule), anim_args.max_frames)
         self.amount_schedule_series = get_inbetweens(parse_key_frames(anim_args.amount_schedule), anim_args.max_frames)
         self.threshold_schedule_series = get_inbetweens(parse_key_frames(anim_args.threshold_schedule), anim_args.max_frames)
-        self.hybrid_comp_alpha_schedule_series = get_inbetweens(parse_key_frames(anim_args.hybrid_comp_alpha_schedule), anim_args.max_frames)
-        self.hybrid_comp_mask_blend_alpha_schedule_series = get_inbetweens(parse_key_frames(anim_args.hybrid_comp_mask_blend_alpha_schedule), anim_args.max_frames)
-        self.hybrid_comp_mask_contrast_schedule_series = get_inbetweens(parse_key_frames(anim_args.hybrid_comp_mask_contrast_schedule), anim_args.max_frames)
-        self.hybrid_comp_mask_auto_contrast_cutoff_high_schedule_series = get_inbetweens(parse_key_frames(anim_args.hybrid_comp_mask_auto_contrast_cutoff_high_schedule), anim_args.max_frames)
-        self.hybrid_comp_mask_auto_contrast_cutoff_low_schedule_series = get_inbetweens(parse_key_frames(anim_args.hybrid_comp_mask_auto_contrast_cutoff_low_schedule), anim_args.max_frames)
+        self.hybrid_comp_alpha_schedule_series = get_inbetweens(parse_key_frames(anim_args.hybrid_video_comp_alpha_schedule), anim_args.max_frames)
+        self.hybrid_comp_mask_blend_alpha_schedule_series = get_inbetweens(parse_key_frames(anim_args.hybrid_video_comp_mask_blend_alpha_schedule), anim_args.max_frames)
+        self.hybrid_comp_mask_contrast_schedule_series = get_inbetweens(parse_key_frames(anim_args.hybrid_video_comp_mask_contrast_schedule), anim_args.max_frames)
+        self.hybrid_comp_mask_auto_contrast_cutoff_high_schedule_series = get_inbetweens(parse_key_frames(anim_args.hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule), anim_args.max_frames)
+        self.hybrid_comp_mask_auto_contrast_cutoff_low_schedule_series = get_inbetweens(parse_key_frames(anim_args.hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule), anim_args.max_frames)
 
 def get_inbetweens(key_frames, max_frames, integer=False, interp_method='Linear', is_single_string = False):
     import numexpr

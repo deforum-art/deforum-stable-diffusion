@@ -211,29 +211,29 @@ class Predictor(BasePredictor):
         overwrite_extracted_frames: bool = Input(default=True),
         use_mask_video: bool = Input(default=False),
         video_mask_path: Path = Input(default=None),
-        hybrid_video_generate_inputframes: bool = Input(default=False),
-        hybrid_video_use_first_frame_as_init_image: bool = Input(default=True),
-        hybrid_video_motion: str = Input(
+        hybrid_generate_inputframes: bool = Input(default=False),
+        hybrid_use_first_frame_as_init_image: bool = Input(default=True),
+        hybrid_motion: str = Input(
             choices=["None", "Optical Flow", "Perspective", "Affine"],
             default="None",
         ),
-        hybrid_video_flow_method: str = Input(
+        hybrid_flow_method: str = Input(
             choices=["Farneback", "DenseRLOF", "SF"],
             default="Farneback",
         ),
-        hybrid_video_composite: bool = Input(default=False),
-        hybrid_video_comp_mask_type: str = Input(
+        hybrid_composite: bool = Input(default=False),
+        hybrid_comp_mask_type: str = Input(
             choices=["None", "Depth", "Video Depth", "Blend", "Difference"],
             default="None",
         ),
-        hybrid_video_comp_mask_inverse: bool = Input(default=False),
-        hybrid_video_comp_mask_equalize: str = Input(
+        hybrid_comp_mask_inverse: bool = Input(default=False),
+        hybrid_comp_mask_equalize: str = Input(
             choices=["None", "Before", "After", "Both"],
             default="None",
         ),
-        hybrid_video_comp_mask_auto_contrast: bool = Input(default=False),
-        hybrid_video_comp_save_extra_frames: bool = Input(default=False),
-        hybrid_video_use_video_as_mse_image: bool = Input(default=False),
+        hybrid_comp_mask_auto_contrast: bool = Input(default=False),
+        hybrid_comp_save_extra_frames: bool = Input(default=False),
+        hybrid_use_video_as_mse_image: bool = Input(default=False),
         interpolate_key_frames: bool = Input(default=False),
         interpolate_x_frames: int = Input(default=4),
         resume_from_timestring: bool = Input(default=False),

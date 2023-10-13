@@ -66,19 +66,19 @@ def hybrid_composite(args, anim_args, frame_idx, prev_img, depth_model, hybrid_c
     hybrid_mask = None
 
     # composite mask types
-    if anim_args.hybrid_comp_mask_type == 'Depth': # get depth from last generation
+    if anim_args.hybrid_video_comp_mask_type == 'Depth': # get depth from last generation
         hybrid_mask = Image.open(depth_frame)
-    elif anim_args.hybrid_comp_mask_type == 'Video Depth': # get video depth
+    elif anim_args.hybrid_video_comp_mask_type == 'Video Depth': # get video depth
         video_depth = depth_model.predict(np.array(video_image), anim_args)
         depth_model.save(video_depth_frame, video_depth, args.bit_depth_output)
         hybrid_mask = Image.open(video_depth_frame)
-    elif anim_args.hybrid_comp_mask_type == 'Blend': # create blend mask image
+    elif anim_args.hybrid_video_comp_mask_type == 'Blend': # create blend mask image
         hybrid_mask = Image.blend(ImageOps.grayscale(prev_img_hybrid), ImageOps.grayscale(video_image), hybrid_comp_schedules['mask_blend_alpha'])
-    elif anim_args.hybrid_comp_mask_type == 'Difference': # create difference mask image
+    elif anim_args.hybrid_video_comp_mask_type == 'Difference': # create difference mask image
         hybrid_mask = ImageChops.difference(ImageOps.grayscale(prev_img_hybrid), ImageOps.grayscale(video_image))
         
     # optionally invert mask, if mask type is defined
-    if anim_args.hybrid_comp_mask_inverse and anim_args.hybrid_comp_mask_type != "None":
+    if anim_args.hybrid_video_comp_mask_inverse and anim_args.hybrid_video_comp_mask_type != "None":
         hybrid_mask = ImageOps.invert(hybrid_mask)
 
     # if a mask type is selected, make composition
@@ -88,28 +88,28 @@ def hybrid_composite(args, anim_args, frame_idx, prev_img, depth_model, hybrid_c
         # ensure grayscale
         hybrid_mask = ImageOps.grayscale(hybrid_mask)
         # equalization before
-        if anim_args.hybrid_comp_mask_equalize in ['Before', 'Both']:
+        if anim_args.hybrid_video_comp_mask_equalize in ['Before', 'Both']:
             hybrid_mask = ImageOps.equalize(hybrid_mask)        
         # contrast
         hybrid_mask = ImageEnhance.Contrast(hybrid_mask).enhance(hybrid_comp_schedules['mask_contrast'])
         # auto contrast with cutoffs lo/hi
-        if anim_args.hybrid_comp_mask_auto_contrast:
+        if anim_args.hybrid_video_comp_mask_auto_contrast:
             hybrid_mask = autocontrast_grayscale(np.array(hybrid_mask), hybrid_comp_schedules['mask_auto_contrast_cutoff_low'], hybrid_comp_schedules['mask_auto_contrast_cutoff_high'])
             hybrid_mask = Image.fromarray(hybrid_mask)
             hybrid_mask = ImageOps.grayscale(hybrid_mask)   
-        if anim_args.hybrid_comp_save_extra_frames:
+        if anim_args.hybrid_video_comp_save_extra_frames:
             hybrid_mask.save(mask_frame)        
         # equalization after
-        if anim_args.hybrid_comp_mask_equalize in ['After', 'Both']:
+        if anim_args.hybrid_video_comp_mask_equalize in ['After', 'Both']:
             hybrid_mask = ImageOps.equalize(hybrid_mask)        
         # do compositing and save
         hybrid_comp = Image.composite(prev_img_hybrid, video_image, hybrid_mask)            
-        if anim_args.hybrid_comp_save_extra_frames:
+        if anim_args.hybrid_video_comp_save_extra_frames:
             hybrid_comp.save(comp_frame)
 
     # final blend of composite with prev_img, or just a blend if no composite is selected
     hybrid_blend = Image.blend(prev_img_hybrid, hybrid_comp, hybrid_comp_schedules['alpha'])  
-    if anim_args.hybrid_comp_save_extra_frames:
+    if anim_args.hybrid_video_comp_save_extra_frames:
         hybrid_blend.save(prev_frame)
 
     prev_img = np.array(hybrid_blend)

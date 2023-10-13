@@ -192,7 +192,7 @@ def unsharp_mask(img, kernel_size=(5, 5), sigma=1.0, amount=1.0, threshold=0):
 def render_animation(root, anim_args, args, cond_prompts, uncond_prompts):
     # handle hybrid video generation
     if anim_args.animation_mode in ['2D','3D']:
-        if anim_args.hybrid_composite or anim_args.hybrid_motion in ['Affine', 'Perspective', 'Optical Flow']:
+        if anim_args.hybrid_video_composite or anim_args.hybrid_video_motion in ['Affine', 'Perspective', 'Optical Flow']:
             args, anim_args, inputfiles = hybrid_generation(args, anim_args, root)
             # path required by hybrid functions, even if hybrid_comp_save_extra_frames is False
             hybrid_frame_path = os.path.join(args.outdir, 'hybridframes')
@@ -246,14 +246,14 @@ def render_animation(root, anim_args, args, cond_prompts, uncond_prompts):
 
     # load depth model for 3D (or depth compositing)
     predict_depths = (anim_args.animation_mode == '3D' and anim_args.use_depth_warping) or anim_args.save_depth_maps
-    predict_depths = predict_depths or (anim_args.hybrid_composite and anim_args.hybrid_comp_mask_type in ['Depth','Video Depth'])
+    predict_depths = predict_depths or (anim_args.hybrid_video_composite and anim_args.hybrid_video_comp_mask_type in ['Depth','Video Depth'])
     if predict_depths:
         depth_model = DepthModel(root.device)
         depth_model.load_midas(root.models_path)
         if anim_args.midas_weight < 1.0:
             depth_model.load_adabins(root.models_path)
         # depth based compositing requires saved depth maps
-        if anim_args.hybrid_composite and anim_args.hybrid_comp_mask_type =='Depth':
+        if anim_args.hybrid_video_composite and anim_args.hybrid_video_comp_mask_type =='Depth':
             anim_args.save_depth_maps = True
     else:
         depth_model = None
@@ -340,16 +340,16 @@ def render_animation(root, anim_args, args, cond_prompts, uncond_prompts):
                                 turbo_prev_image = image_transform_ransac(turbo_prev_image, matrix, anim_args.hybrid_motion, cv2.BORDER_WRAP if anim_args.border == 'wrap' else cv2.BORDER_REPLICATE)
                             if advance_next:
                                 turbo_next_image = image_transform_ransac(turbo_next_image, matrix, anim_args.hybrid_motion, cv2.BORDER_WRAP if anim_args.border == 'wrap' else cv2.BORDER_REPLICATE)
-                    if anim_args.hybrid_motion in ['Optical Flow']:
+                    if anim_args.hybrid_video_motion in ['Optical Flow']:
                         if anim_args.hybrid_motion_use_prev_img:
                             if advance_prev:
-                                flow = get_flow_for_hybrid_motion_prev(tween_frame_idx-1, (args.W, args.H), inputfiles, hybrid_frame_path, turbo_prev_image, anim_args.hybrid_flow_method, anim_args.hybrid_comp_save_extra_frames)
+                                flow = get_flow_for_hybrid_motion_prev(tween_frame_idx-1, (args.W, args.H), inputfiles, hybrid_frame_path, turbo_prev_image, anim_args.hybrid_flow_method, anim_args.hybrid_video_comp_save_extra_frames)
                                 turbo_prev_image = image_transform_optical_flow(turbo_prev_image, flow, cv2.BORDER_WRAP if anim_args.border == 'wrap' else cv2.BORDER_REPLICATE)
                             if advance_next:
-                                flow = get_flow_for_hybrid_motion_prev(tween_frame_idx-1, (args.W, args.H), inputfiles, hybrid_frame_path, turbo_next_image, anim_args.hybrid_flow_method, anim_args.hybrid_comp_save_extra_frames)
+                                flow = get_flow_for_hybrid_motion_prev(tween_frame_idx-1, (args.W, args.H), inputfiles, hybrid_frame_path, turbo_next_image, anim_args.hybrid_flow_method, anim_args.hybrid_video_comp_save_extra_frames)
                                 turbo_next_image = image_transform_optical_flow(turbo_next_image, flow, cv2.BORDER_WRAP if anim_args.border == 'wrap' else cv2.BORDER_REPLICATE)
                         else:
-                            flow = get_flow_for_hybrid_motion(tween_frame_idx-1, (args.W, args.H), inputfiles, hybrid_frame_path, anim_args.hybrid_flow_method, anim_args.hybrid_comp_save_extra_frames)
+                            flow = get_flow_for_hybrid_motion(tween_frame_idx-1, (args.W, args.H), inputfiles, hybrid_frame_path, anim_args.hybrid_flow_method, anim_args.hybrid_video_comp_save_extra_frames)
                             if advance_prev:
                                 turbo_prev_image = image_transform_optical_flow(turbo_prev_image, flow, cv2.BORDER_WRAP if anim_args.border == 'wrap' else cv2.BORDER_REPLICATE)
                             if advance_next:
@@ -394,24 +394,24 @@ def render_animation(root, anim_args, args, cond_prompts, uncond_prompts):
 
             # hybrid video motion - warps prev_img to match motion, usually to prepare for compositing
             if frame_idx > 0:
-                if anim_args.hybrid_motion in ['Affine', 'Perspective']:
-                    if anim_args.hybrid_motion_use_prev_img:
-                        matrix = get_matrix_for_hybrid_motion_prev(frame_idx, (args.W, args.H), inputfiles, prev_img, anim_args.hybrid_motion)
+                if anim_args.hybrid_video_motion in ['Affine', 'Perspective']:
+                    if anim_args.hybrid_video_motion_use_prev_img:
+                        matrix = get_matrix_for_hybrid_motion_prev(frame_idx, (args.W, args.H), inputfiles, prev_img, anim_args.hybrid_video_motion)
                     else:
-                        matrix = get_matrix_for_hybrid_motion(frame_idx-1, (args.W, args.H), inputfiles, anim_args.hybrid_motion)
-                    prev_img = image_transform_ransac(prev_img, matrix, anim_args.hybrid_motion, cv2.BORDER_WRAP if anim_args.border == 'wrap' else cv2.BORDER_REPLICATE)    
-                if anim_args.hybrid_motion in ['Optical Flow']:
-                    if anim_args.hybrid_motion_use_prev_img:
-                        flow = get_flow_for_hybrid_motion_prev(frame_idx-1, (args.W, args.H), inputfiles, hybrid_frame_path, prev_img, anim_args.hybrid_flow_method, anim_args.hybrid_comp_save_extra_frames)
+                        matrix = get_matrix_for_hybrid_motion(frame_idx-1, (args.W, args.H), inputfiles, anim_args.hybrid_video_motion)
+                    prev_img = image_transform_ransac(prev_img, matrix, anim_args.hybrid_video_motion, cv2.BORDER_WRAP if anim_args.border == 'wrap' else cv2.BORDER_REPLICATE)    
+                if anim_args.hybrid_video_motion in ['Optical Flow']:
+                    if anim_args.hybrid_video_motion_use_prev_img:
+                        flow = get_flow_for_hybrid_motion_prev(frame_idx-1, (args.W, args.H), inputfiles, hybrid_frame_path, prev_img, anim_args.hybrid_video_flow_method, anim_args.hybrid_video_comp_save_extra_frames)
                     else:
-                        flow = get_flow_for_hybrid_motion(frame_idx-1, (args.W, args.H), inputfiles, hybrid_frame_path, anim_args.hybrid_flow_method, anim_args.hybrid_comp_save_extra_frames)
+                        flow = get_flow_for_hybrid_motion(frame_idx-1, (args.W, args.H), inputfiles, hybrid_frame_path, anim_args.hybrid_video_flow_method, anim_args.hybrid_video_comp_save_extra_frames)
                     prev_img = image_transform_optical_flow(prev_img, flow, cv2.BORDER_WRAP if anim_args.border == 'wrap' else cv2.BORDER_REPLICATE)
-                if anim_args.hybrid_use_video_as_mse_image:
+                if anim_args.hybrid_video_use_video_as_mse_image:
                     args.init_mse_image = os.path.join(args.outdir, 'inputframes', f"{frame_idx:05}.jpg")
                     print(f"Using {args.init_mse_image} as init_mse_image")
 
             # do hybrid video - composites video frame into prev_img (now warped if using motion)
-            if anim_args.hybrid_composite:
+            if anim_args.hybrid_video_composite:
                 args, prev_img = hybrid_composite(args, anim_args, frame_idx, prev_img, depth_model, hybrid_comp_schedules, root)
 
             # Transformed raw image before color coherence and noise. Used for mask overlay
@@ -431,7 +431,7 @@ def render_animation(root, anim_args, args, cond_prompts, uncond_prompts):
             # apply color matching
             if anim_args.color_coherence != 'None':
                 # video color matching
-                hybrid_available = anim_args.hybrid_composite or anim_args.hybrid_motion in ['Optical Flow', 'Affine', 'Perspective']
+                hybrid_available = anim_args.hybrid_video_composite or anim_args.hybrid_video_motion in ['Optical Flow', 'Affine', 'Perspective']
                 if anim_args.color_coherence == 'Video Input' and hybrid_available:
                     video_color_coherence_frame = int(frame_idx) % int(anim_args.color_coherence_video_every_N_frames) == 0
                     if video_color_coherence_frame:

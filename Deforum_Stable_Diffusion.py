@@ -97,6 +97,7 @@ from helpers.settings import load_args
 from helpers.render import render_animation, render_input_video, render_image_batch, render_interpolation
 from helpers.model_load import make_linear_decode, load_model, get_model_output_paths
 from helpers.aesthetics import load_aesthetics_model
+from helpers.prompts import Prompts
 
 # %%
 # !! {"metadata":{
@@ -143,9 +144,9 @@ root.model, root.device = load_model(root, load_on_run_all=True, check_sha256=Tr
 def DeforumAnimArgs():
 
     #@markdown ####**Animation:**
-    animation_mode = 'None' #@param ['None', '2D', '3D', 'Video Input', 'Interpolation'] {type:'string'}
-    max_frames = 1000 #@param {type:"number"}
-    border = 'replicate' #@param ['wrap', 'replicate'] {type:'string'}
+    animation_mode = '3D' #@param ['None', '2D', '3D', 'Video Input', 'Interpolation'] {type:'string'}
+    max_frames = 30 #@param {type:"number"}
+    border = 'wrap' #@param ['wrap', 'replicate'] {type:'string'}
 
     #@markdown ####**Motion Parameters:**
     angle = "0:(0)"#@param {type:"string"}
@@ -170,6 +171,10 @@ def DeforumAnimArgs():
     hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule =  "0:(100)" #@param {type:"string"}
     hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule =  "0:(0)" #@param {type:"string"}
 
+    #@markdown ####**Sampler Scheduling:**
+    enable_schedule_samplers = False #@param {type:"boolean"}
+    sampler_schedule = "0:('euler'),10:('dpm2'),20:('dpm2_ancestral'),30:('heun'),40:('euler'),50:('euler_ancestral'),60:('dpm_fast'),70:('dpm_adaptive'),80:('dpmpp_2s_a'),90:('dpmpp_2m')" #@param {type:"string"}
+
     #@markdown ####**Unsharp mask (anti-blur) Parameters:**
     kernel_schedule = "0: (5)"#@param {type:"string"}
     sigma_schedule = "0: (1.0)"#@param {type:"string"}
@@ -179,6 +184,7 @@ def DeforumAnimArgs():
     #@markdown ####**Coherence:**
     color_coherence = 'Match Frame 0 LAB' #@param ['None', 'Match Frame 0 HSV', 'Match Frame 0 LAB', 'Match Frame 0 RGB', 'Video Input'] {type:'string'}
     color_coherence_video_every_N_frames = 1 #@param {type:"integer"}
+    color_force_grayscale = False #@param {type:"boolean"}
     diffusion_cadence = '1' #@param ['1','2','3','4','5','6','7','8'] {type:'string'}
 
     #@markdown ####**3D Depth Warping:**
@@ -225,21 +231,15 @@ def DeforumAnimArgs():
 # !! {"metadata":{
 # !!   "id": "i9fly1RIWM_u"
 # !! }}
-prompts = [
-    "a beautiful lake by Asher Brown Durand, trending on Artstation", # the first prompt I want
-    "a beautiful portrait of a woman by Artgerm, trending on Artstation", # the second prompt I want
-    #"this prompt I don't want it I commented it out",
-    #"a nousr robot, trending on Artstation", # use "nousr robot" with the robot diffusion model (see model_checkpoint setting)
-    #"touhou 1girl komeiji_koishi portrait, green hair", # waifu diffusion prompts can use danbooru tag groups (see model_checkpoint)
-    #"this prompt has weights if prompt weighting enabled:2 can also do negative:-2", # (see prompt_weighting)
-]
-
-animation_prompts = {
-    0: "a beautiful apple, trending on Artstation",
-    20: "a beautiful banana, trending on Artstation",
-    30: "a beautiful coconut, trending on Artstation",
-    40: "a beautiful durian, trending on Artstation",
+prompts = {
+    0: "a beautiful lake by Asher Brown Durand, trending on Artstation",
+    10: "a beautiful portrait of a woman by Artgerm, trending on Artstation",
 }
+
+neg_prompts = {
+    0: "mountain",
+}
+
 
 # %%
 # !! {"metadata":{
@@ -290,10 +290,13 @@ def DeforumArgs():
     outdir = get_output_folder(root.output_path, batch_name)
 
     #@markdown **Init Settings**
-    use_init = False #@param {type:"boolean"}
-    strength = 0.65 #@param {type:"number"}
+    use_init = True #@param {type:"boolean"}
+    strength = 1 #@param {type:"number"}
     strength_0_no_init = True # Set the strength to 0 automatically when no init image is used
-    init_image = "https://cdn.pixabay.com/photo/2022/07/30/13/10/green-longhorn-beetle-7353749_1280.jpg" #@param {type:"string"}
+    init_image = r"C:\Users\kurt_\Downloads\sample-ss.png" #@param {type:"string"}
+    add_init_noise = False
+    init_noise = 0.01
+    
     # Whiter areas of the mask are areas that change more
     use_mask = False #@param {type:"boolean"}
     use_alpha_as_mask = False # use the alpha channel of the init image as the mask
@@ -350,7 +353,10 @@ def DeforumArgs():
     C = 4
     f = 8
 
-    prompt = ""
+    cond_prompt = ""
+    cond_prompts = ""
+    uncond_prompt = ""
+    uncond_prompts = ""
     timestring = ""
     init_latent = None
     init_sample = None
@@ -398,15 +404,18 @@ elif anim_args.animation_mode == 'Video Input':
 gc.collect()
 torch.cuda.empty_cache()
 
+# get prompts
+cond, uncond = Prompts(prompt=prompts,neg_prompt=neg_prompts).as_dict()
+
 # dispatch to appropriate renderer
 if anim_args.animation_mode == '2D' or anim_args.animation_mode == '3D':
-    render_animation(args, anim_args, animation_prompts, root)
+    render_animation(root, anim_args, args, cond, uncond)
 elif anim_args.animation_mode == 'Video Input':
-    render_input_video(args, anim_args, animation_prompts, root)
+    render_input_video(root, anim_args, args, cond, uncond)
 elif anim_args.animation_mode == 'Interpolation':
-    render_interpolation(args, anim_args, animation_prompts, root)
+    render_interpolation(root, anim_args, args, cond, uncond)
 else:
-    render_image_batch(args, prompts, root)
+    render_image_batch(root, args, cond, uncond)
 
 # %%
 # !! {"metadata":{
