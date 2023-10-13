@@ -1,0 +1,107 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import shutil
+from tqdm import tqdm
+import requests
+
+
+MODEL_CACHE = "diffusion_models_cache"
+if os.path.exists(MODEL_CACHE):
+    shutil.rmtree(MODEL_CACHE)
+os.makedirs(MODEL_CACHE, exist_ok=True)
+
+
+MODEL_MAP = {
+    "Protogen_V2.2.ckpt": {
+        "sha256": "bb725eaf2ed90092e68b892a1d6262f538131a7ec6a736e50ae534be6b5bd7b1",
+        "url": "https://huggingface.co/darkstorm2150/Protogen_v2.2_Official_Release/resolve/main/Protogen_V2.2.ckpt",
+        "requires_login": False,
+    },
+    "v2-1_768-ema-pruned.ckpt": {
+        "sha256": "ad2a33c361c1f593c4a1fb32ea81afce2b5bb7d1983c6b94793a26a3b54b08a0",
+        "url": "https://huggingface.co/stabilityai/stable-diffusion-2-1/resolve/main/v2-1_768-ema-pruned.ckpt",
+        "requires_login": False,
+    },
+    "v2-1_512-ema-pruned.ckpt": {
+        "sha256": "88ecb782561455673c4b78d05093494b9c539fc6bfc08f3a9a4a0dd7b0b10f36",
+        "url": "https://huggingface.co/stabilityai/stable-diffusion-2-1-base/resolve/main/v2-1_512-ema-pruned.ckpt",
+        "requires_login": False,
+    },
+    "768-v-ema.ckpt": {
+        "sha256": "bfcaf0755797b0c30eb00a3787e8b423eb1f5decd8de76c4d824ac2dd27e139f",
+        "url": "https://huggingface.co/stabilityai/stable-diffusion-2/resolve/main/768-v-ema.ckpt",
+        "requires_login": False,
+    },
+    "512-base-ema.ckpt": {
+        "sha256": "d635794c1fedfdfa261e065370bea59c651fc9bfa65dc6d67ad29e11869a1824",
+        "url": "https://huggingface.co/stabilityai/stable-diffusion-2-base/resolve/main/512-base-ema.ckpt",
+        "requires_login": False,
+    },
+    "v1-5-pruned.ckpt": {
+        "sha256": "e1441589a6f3c5a53f5f54d0975a18a7feb7cdf0b0dee276dfc3331ae376a053",
+        "url": "https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned.ckpt",
+        "requires_login": False,
+    },
+    "v1-5-pruned-emaonly.ckpt": {
+        "sha256": "cc6cb27103417325ff94f52b7a5d2dde45a7515b25c255d8e396c90014281516",
+        "url": "https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.ckpt",
+        "requires_login": False,
+    },
+    "sd-v1-4.ckpt": {
+        "sha256": "fe4efff1e174c627256e44ec2991ba279b3816e364b49f9be2abc0b3ff3f8556",
+        "url": "https://huggingface.co/CompVis/stable-diffusion-v-1-4-original/resolve/main/sd-v1-4.ckpt",
+        "requires_login": True,
+    },
+    "robo-diffusion-v1.ckpt": {
+        "sha256": "244dbe0dcb55c761bde9c2ac0e9b46cc9705ebfe5f1f3a7cc46251573ea14e16",
+        "url": "https://huggingface.co/nousr/robo-diffusion/resolve/main/models/robo-diffusion-v1.ckpt",
+        "requires_login": False,
+    },
+    "wd-v1-3-float16.ckpt": {
+        "sha256": "4afab9126057859b34d13d6207d90221d0b017b7580469ea70cee37757a29edd",
+        "url": "https://huggingface.co/hakurei/waifu-diffusion-v1-3/resolve/main/wd-v1-3-float16.ckpt",
+        "requires_login": False,
+    },
+}
+
+
+def download_model(model_ckpt):
+    url = MODEL_MAP[model_ckpt]["url"]
+    if MODEL_MAP[model_ckpt]["requires_login"]:
+        username = sys.argv[1]
+        token = sys.argv[2]
+        _, path = url.split("https://")
+        url = f"https://{username}:{token}@{path}"
+
+    # contact server for model
+    print(f"..attempting to download {model_ckpt}...this may take a while")
+    ckpt_request = requests.get(url, stream=True)
+    request_status = ckpt_request.status_code
+
+    # inform user of errors
+    if request_status == 403:
+        raise ConnectionRefusedError(
+            "You have not accepted the license for this model."
+        )
+    elif request_status == 404:
+        raise ConnectionError("Could not make contact with server")
+    elif request_status != 200:
+        raise ConnectionError(
+            f"Some other error has ocurred - response code: {request_status}"
+        )
+
+    # write to model path
+    with open(os.path.join(MODEL_CACHE, model_ckpt), "wb") as model_file:
+        file_size = int(ckpt_request.headers.get("Content-Length"))
+        with tqdm(total=file_size, unit="B", unit_scale=True, desc=model_ckpt) as pbar:
+            for chunk in ckpt_request.iter_content(chunk_size=1024):
+                if chunk:  # filter out keep-alive new chunks
+                    model_file.write(chunk)
+                    pbar.update(len(chunk))
+
+
+# download checkpoints
+for model_ckpt in MODEL_MAP:
+    download_model(model_ckpt)
