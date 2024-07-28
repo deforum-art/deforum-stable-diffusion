@@ -1,0 +1,18 @@
+---
+created: 2023-09-08T11:34:25+02:00
+modified: 2023-09-08T11:35:14+02:00
+---
+
+# Search stack overflow
+
+---------------------------------------------------------------------------
+NameError                                 Traceback (most recent call last)
+<ipython-input-7-8bb40b25fe57> in <cell line: 6>()
+      4 style_name = 'munch_scream'  # @param ['kanagawa_great_wave', 'kandinsky_composition_7', 'hubble_pillars_of_creation', 'van_gogh_starry_night', 'turner_nantes', 'munch_scream', 'picasso_demoiselles_avignon', 'picasso_violin', 'picasso_bottle_of_rum', 'fire', 'derkovits_woman_head', 'amadeo_style_life', 'derkovtis_talig', 'amadeo_cardoso']
+      5 
+----> 6 stylized_image = hub_module(tf.constant(content_images[content_name]),
+      7                             tf.constant(style_images[style_name]))[0]
+      8 
+
+NameError: name 'hub_module' is not defined
+SEARCH STACK OVERFLOW
