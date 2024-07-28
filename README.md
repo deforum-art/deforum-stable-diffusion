@@ -1,5 +1,9 @@
 # Deforum Stable Diffusion
 
+⚠️ **NOTICE: This project is no longer maintained.** ⚠️
+
+This repository is no longer actively maintained or updated. Users are advised to find alternative solutions or fork the project if they wish to continue development.
+
 <p align="left">
     <a href="https://github.com/deforum-art/deforum-stable-diffusion/commits"><img alt="Last Commit" src="https://img.shields.io/github/last-commit/deforum-art/deforum-stable-diffusion"></a>
     <a href="https://github.com/deforum-art/deforum-stable-diffusion/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/deforum-art/deforum-stable-diffusion"></a>
