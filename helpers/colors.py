@@ -1,5 +1,6 @@
 from skimage.exposure import match_histograms
 import cv2
+import numpy as np
 
 def maintain_colors(prev_img, color_match_sample, mode):
     if mode == 'Match Frame 0 RGB':
